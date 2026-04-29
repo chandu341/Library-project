@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student - Library Management System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body data-page="student">
+  <nav class="navbar glass-nav">
+    <a class="brand" href="/student">
+      <span class="logo-mark" aria-hidden="true"><span></span></span>
+      <span>Library Management System</span>
+    </a>
+    <button class="menu-toggle" data-menu-toggle aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="nav-links" data-nav-links>
+      <a href="#books">Books</a>
+      <a href="#my-books">My Books</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </nav>
+
+  <main class="dashboard-shell fade-in">
+    <section class="dashboard-hero reveal student-hero">
+      <div>
+        <p class="eyebrow">Welcome, {{ user.name }}</p>
+        <h1>Student Dashboard</h1>
+        <p>Search the catalog, issue available books, and return them before the due date.</p>
+      </div>
+      <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1000&q=80" alt="Open books">
+    </section>
+
+    <section class="stats-grid reveal">
+      <article class="stat-card">
+        <span>My Issued Books</span>
+        <strong data-counter id="studentIssued">0</strong>
+      </article>
+      <article class="stat-card warning">
+        <span>Pending Fine</span>
+        <strong id="studentFine">Rs.0</strong>
+      </article>
+      <article class="stat-card">
+        <span>Available Books</span>
+        <strong data-counter id="studentAvailable">0</strong>
+      </article>
+    </section>
+
+    <section id="books" class="panel reveal">
+      <div class="panel-heading row-heading">
+        <div>
+          <p class="eyebrow">Catalog</p>
+          <h2>Book Listing</h2>
+        </div>
+        <input class="search-input" id="bookSearch" placeholder="Search books">
+      </div>
+      <div id="bookGrid" class="book-grid"></div>
+    </section>
+
+    <section id="my-books" class="panel reveal">
+      <div class="panel-heading row-heading">
+        <div>
+          <p class="eyebrow">My desk</p>
+          <h2>Issued Books</h2>
+        </div>
+        <button class="btn ghost" id="refreshStudent">Refresh</button>
+      </div>
+      <div id="studentTransactions" class="table-wrap"></div>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Library Management System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body data-page="admin">
+  <nav class="navbar glass-nav">
+    <a class="brand" href="/admin">
+      <span class="logo-mark" aria-hidden="true"><span></span></span>
+      <span>Library Management System</span>
+    </a>
+    <button class="menu-toggle" data-menu-toggle aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="nav-links" data-nav-links>
+      <a href="#books">Available Books</a>
+      <a href="#issued-books">Issued Books</a>
+      <a href="#reports">Reports</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </nav>
+
+  <main class="dashboard-shell fade-in">
+    <section class="dashboard-hero reveal">
+      <div>
+        <p class="eyebrow">Welcome, {{ user.name }}</p>
+        <h1>Admin Dashboard</h1>
+        <p>Track stock, issue books, monitor returns, and view overdue activity from one place.</p>
+      </div>
+      <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1000&q=80" alt="Library shelves">
+    </section>
+
+    <section class="stats-grid reveal">
+      <article class="stat-card">
+        <span>Issued</span>
+        <strong data-counter id="statIssued">0</strong>
+      </article>
+      <article class="stat-card">
+        <span>Returned</span>
+        <strong data-counter id="statReturned">0</strong>
+      </article>
+      <article class="stat-card warning">
+        <span>Overdue</span>
+        <strong data-counter id="statOverdue">0</strong>
+      </article>
+      <article class="stat-card fine">
+        <span>Fine Collected</span>
+        <strong id="statFine">Rs.0</strong>
+      </article>
+    </section>
+
+    <section id="books" class="workspace-grid">
+      <div class="panel reveal">
+        <div class="panel-heading">
+          <p class="eyebrow">Book control</p>
+          <h2 id="bookFormTitle">Add Book</h2>
+        </div>
+        <form id="bookForm" class="form-grid">
+          <input type="hidden" id="bookId">
+          <label>Title <input id="bookTitle" required placeholder="Book 1"></label>
+          <label>Author <input id="bookAuthor" required placeholder="Author 1"></label>
+          <label>Category <input id="bookCategory" required placeholder="General"></label>
+          <label>Total Quantity <input id="bookQuantity" type="number" min="1" required placeholder="5"></label>
+          <label>Shelf <input id="bookShelf" required placeholder="A1"></label>
+          <label>Cover URL <input id="bookCover" placeholder="https://..."></label>
+          <div class="button-row">
+            <button class="btn primary" type="submit">Save Book</button>
+            <button class="btn ghost" type="button" id="resetBookForm">Clear</button>
+          </div>
+          <p id="bookMessage" class="form-message"></p>
+        </form>
+      </div>
+
+      <div class="panel wide reveal">
+        <div class="panel-heading row-heading">
+          <div>
+            <p class="eyebrow">Catalog</p>
+            <h2>Book Listing</h2>
+          </div>
+          <input class="search-input" id="bookSearch" placeholder="Search books">
+        </div>
+        <div id="bookGrid" class="book-grid"></div>
+      </div>
+    </section>
+
+    <section id="issue" class="workspace-grid">
+      <div class="panel reveal">
+        <div class="panel-heading">
+          <p class="eyebrow">Issue a Book</p>
+          <h2>Issue Book</h2>
+        </div>
+        <form id="issueForm" class="form-grid">
+          <label>Student <select id="issueStudent" required></select></label>
+          <label>Book <select id="issueBook" required></select></label>
+          <button class="btn primary" type="submit">Issue Book</button>
+          <p id="issueMessage" class="form-message"></p>
+        </form>
+      </div>
+
+      <div id="issued-books" class="panel wide reveal">
+        <div class="panel-heading row-heading">
+          <div>
+            <p class="eyebrow">Issued Books</p>
+            <h2>Currently Issued Books</h2>
+          </div>
+          <button class="btn ghost" id="refreshAdmin">Refresh List</button>
+        </div>
+        <div id="adminTransactions" class="table-wrap"></div>
+      </div>
+    </section>
+
+    <section id="reports" class="panel reveal">
+      <div class="panel-heading">
+        <p class="eyebrow">Reports</p>
+        <h2>Issued, Returned, Overdue</h2>
+      </div>
+      <div class="reports-grid">
+        <div><h3>Issued</h3><div id="issuedReport" class="report-list"></div></div>
+        <div><h3>Returned</h3><div id="returnedReport" class="report-list"></div></div>
+        <div><h3>Overdue</h3><div id="overdueReport" class="report-list"></div></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

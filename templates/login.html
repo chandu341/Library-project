@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library Management System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="auth-page">
+  <nav class="navbar glass-nav app-navbar">
+    <a class="brand" href="#home" aria-label="Library Management System">
+      <span class="logo-mark" aria-hidden="true"><span></span></span>
+      <span>Library Management System</span>
+    </a>
+    <button class="menu-toggle" data-menu-toggle aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="nav-links" data-nav-links>
+      <a href="#home">Home</a>
+      <a href="#features">Features</a>
+      <a href="#spaces">Spaces</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </nav>
+
+  <main id="home" class="auth-shell system-home fade-in">
+    <section class="hero auth-hero system-hero reveal">
+      <div class="hero-backdrop" aria-hidden="true"></div>
+      <div class="hero-content">
+        <p class="eyebrow">Modern library operations</p>
+        <h1>Smarter Library Management, Simplified</h1>
+        <p class="hero-copy">Manage books, track students, and handle issue and return operations efficiently in one place.</p>
+        <div class="hero-actions">
+          <button class="btn primary" type="button" data-login-role="admin">Login as Admin</button>
+          <button class="btn secondary" type="button" data-login-role="student">Login as Student</button>
+        </div>
+        <div class="hero-highlights">
+          <div class="hero-highlight">
+            <strong>Live circulation</strong>
+            <span>Issue, return, and overdue tracking in one flow.</span>
+          </div>
+          <div class="hero-highlight">
+            <strong>Reader friendly</strong>
+            <span>Dedicated admin and student access with clear actions.</span>
+          </div>
+          <div class="hero-highlight">
+            <strong>Always searchable</strong>
+            <span>Find books, categories, and shelf positions in seconds.</span>
+          </div>
+        </div>
+      </div>
+
+      <aside id="dashboard" class="preview-panel" aria-label="Dashboard preview">
+        <div class="preview-header">
+          <div>
+            <span class="preview-dot"></span>
+            <strong>Today Overview</strong>
+          </div>
+          <span class="status-badge good">Live</span>
+        </div>
+
+        <div class="preview-visual">
+          <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80" alt="Library interior shelves">
+          <div class="preview-note">
+            <strong>Reading Hall</strong>
+            <span>Quiet zones, shelf visibility, and active desk monitoring.</span>
+          </div>
+        </div>
+
+        <div class="mini-chart" aria-label="Issued and returned books chart">
+          <div class="chart-row">
+            <span>Issued</span>
+            <div class="chart-track"><span style="width: 72%"></span></div>
+            <strong>72</strong>
+          </div>
+          <div class="chart-row">
+            <span>Returned</span>
+            <div class="chart-track returned"><span style="width: 54%"></span></div>
+            <strong>54</strong>
+          </div>
+        </div>
+
+        <div class="activity-list">
+          <div class="activity-item">
+            <span class="activity-icon issued"></span>
+            <div>
+              <strong>Book issued</strong>
+              <small>Ratna received Book 1</small>
+            </div>
+            <em>On time</em>
+          </div>
+          <div class="activity-item">
+            <span class="activity-icon returned"></span>
+            <div>
+              <strong>Book returned</strong>
+              <small>Pannu returned Book 3</small>
+            </div>
+            <em>Closed</em>
+          </div>
+          <div class="activity-item">
+            <span class="activity-icon overdue"></span>
+            <div>
+              <strong>Fine review</strong>
+              <small>Karuna has one overdue item</small>
+            </div>
+            <em>Alert</em>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="metrics-wrap" aria-label="Library metrics">
+      <div class="section-heading centered reveal">
+        <p class="eyebrow">Daily snapshot</p>
+        <h2>Designed for fast circulation and clear visibility</h2>
+      </div>
+      <div class="metrics-section">
+        <article class="metric-card reveal reveal-card">
+          <span class="metric-icon books-icon" aria-hidden="true"></span>
+          <strong>520</strong>
+          <p>Total Books</p>
+        </article>
+        <article class="metric-card reveal reveal-card">
+          <span class="metric-icon students-icon" aria-hidden="true"></span>
+          <strong>128</strong>
+          <p>Active Students</p>
+        </article>
+        <article class="metric-card reveal reveal-card">
+          <span class="metric-icon issued-icon" aria-hidden="true"></span>
+          <strong>72</strong>
+          <p>Books Issued</p>
+        </article>
+        <article class="metric-card reveal reveal-card">
+          <span class="metric-icon overdue-icon" aria-hidden="true"></span>
+          <strong>06</strong>
+          <p>Overdue Books</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="features" class="features-section">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Structured workflows</p>
+        <h2>Tools for daily library operations</h2>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card reveal reveal-card">
+          <span class="feature-icon book-management"></span>
+          <h3>Book Management</h3>
+          <p>Add, update, search, and organize books with stock visibility.</p>
+        </article>
+        <article class="feature-card reveal reveal-card">
+          <span class="feature-icon student-records"></span>
+          <h3>Student Records</h3>
+          <p>Maintain student access and review active issue history.</p>
+        </article>
+        <article class="feature-card reveal reveal-card">
+          <span class="feature-icon tracking"></span>
+          <h3>Issue & Return Tracking</h3>
+          <p>Monitor due dates, returns, and active transactions clearly.</p>
+        </article>
+        <article class="feature-card reveal reveal-card">
+          <span class="feature-icon fine"></span>
+          <h3>Fine Management</h3>
+          <p>Calculate overdue fines and keep return records accurate.</p>
+        </article>
+        <article class="feature-card reveal reveal-card">
+          <span class="feature-icon access"></span>
+          <h3>Role-Based Access</h3>
+          <p>Separate Admin and Student workflows for cleaner control.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="spaces" class="library-gallery">
+      <article class="gallery-card reveal reveal-card">
+        <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1200&q=80" alt="Bookshelves inside a library">
+        <div class="gallery-copy">
+          <p class="eyebrow">Library spaces</p>
+          <h3>Shelf-ready catalog experience</h3>
+          <p>Give every title a visible place with category, quantity, and shelf mapping that stays easy to scan.</p>
+        </div>
+      </article>
+      <article class="gallery-card reveal reveal-card">
+        <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1200&q=80" alt="Reading room with natural light">
+        <div class="gallery-copy">
+          <p class="eyebrow">Reading environment</p>
+          <h3>Built for calm daily use</h3>
+          <p>Bring circulation, borrowing, and follow-up into a lighter interface that feels organized all day.</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="portal-section">
+      <div class="portal-copy reveal">
+        <p class="eyebrow">Secure access</p>
+        <h2>Choose the right workspace and continue where the desk left off.</h2>
+        <p>Admins can manage stock, issue books, and watch reports. Students can browse the collection and stay ahead of due dates.</p>
+        <div class="portal-points">
+          <div><strong>Admin</strong><span>Catalog control, issue desk, reports</span></div>
+          <div><strong>Student</strong><span>Search, self-issue, return tracking</span></div>
+        </div>
+      </div>
+
+      <div id="login-card" class="login-panel access-portal reveal">
+        <div class="panel-heading login-heading">
+          <p class="eyebrow">Secure access</p>
+          <h2>Access Portal</h2>
+          <p class="login-intro">Choose your role to continue</p>
+        </div>
+        <div class="role-buttons" id="roleButtons">
+          <button class="btn primary" type="button" data-login-role="admin">Admin Login</button>
+          <button class="btn secondary" type="button" data-login-role="student">Student Login</button>
+        </div>
+
+        <div id="loginFormShell" class="login-form-shell" hidden>
+          <div class="selected-role">
+            <span id="selectedRoleLabel">Admin Login</span>
+            <button type="button" class="link-button" id="changeRole">Change role</button>
+          </div>
+          <form id="loginForm" class="form-grid">
+            <input id="role" name="role" type="hidden" value="admin">
+            <label for="username">
+              Username / Email
+              <input id="username" name="username" type="text" placeholder="Username / Email" autocomplete="username" required>
+            </label>
+            <label for="password">
+              Password
+              <span class="password-field">
+                <input id="password" name="password" type="password" placeholder="Password" autocomplete="current-password" required>
+                <button class="password-toggle" id="togglePassword" type="button">Show</button>
+              </span>
+            </label>
+            <div class="form-support">
+              <button class="link-button" id="forgotPasswordLink" type="button">Forgot Password?</button>
+            </div>
+            <button class="btn primary full" id="submitLogin" type="submit">Login</button>
+            <p id="loginMessage" class="form-message"></p>
+          </form>
+        </div>
+
+        <div id="forgotPasswordShell" class="login-form-shell reset-shell" hidden>
+          <div class="selected-role">
+            <span id="resetRoleLabel">Admin Password Reset</span>
+            <button type="button" class="link-button" id="backToLogin">Back to login</button>
+          </div>
+          <form id="forgotPasswordForm" class="form-grid">
+            <input id="resetRole" name="resetRole" type="hidden" value="admin">
+            <label for="resetIdentifier">
+              Username / Email
+              <input id="resetIdentifier" name="resetIdentifier" type="text" placeholder="Username / Email" autocomplete="username" required>
+            </label>
+            <button class="btn primary full" type="submit">Send Email Code</button>
+            <p id="forgotMessage" class="form-message"></p>
+          </form>
+
+          <form id="resetPasswordForm" class="form-grid reset-password-form" hidden>
+            <label for="resetCode">
+              Email Code
+              <input id="resetCode" name="resetCode" type="text" placeholder="6-digit code" inputmode="numeric" maxlength="6" required>
+            </label>
+            <label for="newPassword">
+              New Password
+              <span class="password-field">
+                <input id="newPassword" name="newPassword" type="password" placeholder="New password" autocomplete="new-password" required>
+                <button class="password-toggle" id="toggleNewPassword" type="button">Show</button>
+              </span>
+            </label>
+            <button class="btn primary full" type="submit">Update Password</button>
+            <p id="resetMessage" class="form-message"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="contact-section reveal">
+      <div>
+        <p class="eyebrow">Contact</p>
+        <h2>Need access support?</h2>
+        <p>Reach out for account help, password reset support, or library system questions.</p>
+      </div>
+      <div class="contact-card">
+        <a href="tel:+919666032664">Phone: +91 9666032664</a>
+        <a href="mailto:chanduv4321@gmail.com">Email: chanduv4321@gmail.com</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+import os
+
+import mysql.connector
+from dotenv import load_dotenv
+from mysql.connector import pooling
+
+
+load_dotenv()
+
+
+def env_value(*names, default=None, strip=True):
+    for name in names:
+        value = os.getenv(name)
+        if value is None:
+            continue
+        if strip:
+            value = value.strip()
+        if value != "":
+            return value
+    return default
+
+
+DB_CONFIG = {
+    "host": env_value("MYSQL_HOST", "DB_HOST", default="localhost"),
+    "port": int(env_value("MYSQL_PORT", "DB_PORT", default="3306")),
+    "user": env_value("MYSQL_USER", "DB_USER", default="root"),
+    "password": env_value("MYSQL_PASSWORD", "DB_PASSWORD", default="", strip=False),
+    "database": env_value("MYSQL_DB", "DB_NAME", default="library_management"),
+}
+
+_pool = None
+
+
+def get_pool():
+    global _pool
+    if _pool is None:
+        _pool = pooling.MySQLConnectionPool(
+            pool_name="library_pool",
+            pool_size=5,
+            autocommit=False,
+            **DB_CONFIG,
+        )
+    return _pool
+
+
+def get_connection():
+    return get_pool().get_connection()
