@@ -1,5 +1,8 @@
 from dotenv import load_dotenv
-load_dotenv()
+# Find .env from the project root whether running locally or via gunicorn
+import pathlib
+_env_path = pathlib.Path(__file__).parent.parent / ".env"
+load_dotenv(dotenv_path=_env_path if _env_path.exists() else None)
 from datetime import date, datetime, timedelta
 from email.message import EmailMessage
 from functools import wraps
@@ -13,8 +16,11 @@ from flask import Flask, jsonify, redirect, render_template, request, session, u
 from mysql.connector import Error
 from werkzeug.security import check_password_hash, generate_password_hash
 
-# from db import get_connection
-from backend.db import get_connection
+# Works on Railway (gunicorn backend.app:app) and locally (python backend/app.py)
+try:
+    from backend.db import get_connection
+except ModuleNotFoundError:
+    from db import get_connection
 
 from datetime import date, datetime, timedelta, timezone
 
