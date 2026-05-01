@@ -491,15 +491,6 @@ def forgot_password_api():
 
         # Generate 6-digit OTP
         code = str(random.SystemRandom().randint(100000, 999999))
-        sent, message = send_reset_email(user["email"], user["name"], code)
-        if not sent:
-            print(f"--- EMERGENCY OTP FALLBACK ---")
-            print(f"Could not send email to {user['email']} due to Railway restrictions.")
-            print(f"Your OTP code is: {code}")
-            print(f"------------------------------")
-            # Return success anyway so the UI moves to the OTP entry screen
-            return json_ok("Email blocked by Railway. Check Railway Deployment Logs for your OTP code to proceed.")
-
         # Invalidate old tokens
         cursor.execute(
             "UPDATE password_reset_tokens SET is_used = TRUE WHERE user_id = %s AND is_used = FALSE",
@@ -520,6 +511,15 @@ def forgot_password_api():
             ),
         )
         conn.commit()
+
+        sent, message = send_reset_email(user["email"], user["name"], code)
+        if not sent:
+            print(f"--- EMERGENCY OTP FALLBACK ---")
+            print(f"Could not send email to {user['email']} due to Railway restrictions.")
+            print(f"Your OTP code is: {code}")
+            print(f"------------------------------")
+            return json_ok("Email blocked by Railway. Check Railway Deployment Logs for your OTP code to proceed.")
+
         return json_ok("Reset code sent to the registered email.")
     except Exception as exc:
         if "conn" in locals():
