@@ -195,6 +195,21 @@ def test_network_api():
         results["connection"] = f"Failed: {str(e)}"
         return jsonify({"success": False, "message": "Network check failed.", "details": results})
 
+@app.route("/api/admin-force-reset")
+def force_reset_admin_api():
+    """Emergency route to reset admin passwords to 'chandu123'."""
+    from werkzeug.security import generate_password_hash
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        new_hash = generate_password_hash("chandu123")
+        # Update all admins for safety
+        cursor.execute("UPDATE users SET password_hash = %s WHERE role = 'admin'", (new_hash,))
+        conn.commit()
+        return jsonify({"success": True, "message": "All admin passwords have been reset to 'chandu123'. You can now login."})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Reset failed: {str(e)}"})
+
 def get_library_stats():
     """Fetch real-time library statistics for the landing page."""
     try:
