@@ -303,7 +303,7 @@ def login_api():
             """
             SELECT id, name, username, email, password_hash, role
             FROM users
-            WHERE (username = %s OR email = %s) AND role = %s
+            WHERE (LOWER(username) = LOWER(%s) OR LOWER(email) = LOWER(%s)) AND role = %s
             """,
             (username, username, role),
         )
