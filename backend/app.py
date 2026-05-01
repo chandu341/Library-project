@@ -126,10 +126,10 @@ def to_int(value, default=0):
 def smtp_configured():
     return all(
         [
-            os.getenv("SMTP_HOST"),
-            os.getenv("SMTP_USERNAME"),
-            os.getenv("SMTP_PASSWORD"),
-            os.getenv("SMTP_FROM"),
+            os.getenv("SMTP_HOST", "").strip(),
+            os.getenv("SMTP_USERNAME", "").strip(),
+            os.getenv("SMTP_PASSWORD", "").strip(),
+            os.getenv("SMTP_FROM", "").strip(),
         ]
     )
 
@@ -149,11 +149,11 @@ def send_reset_email(to_email, name, code):
         "If you did not request this, please ignore this email."
     )
 
-    host = os.getenv("SMTP_HOST")
-    port = int(os.getenv("SMTP_PORT", "587"))
-    username = os.getenv("SMTP_USERNAME")
-    password = os.getenv("SMTP_PASSWORD")
-    use_ssl = os.getenv("SMTP_USE_SSL", "false").lower() == "true"
+    host = os.getenv("SMTP_HOST", "").strip()
+    port = int(os.getenv("SMTP_PORT", "587").strip())
+    username = os.getenv("SMTP_USERNAME", "").strip()
+    password = os.getenv("SMTP_PASSWORD", "").strip()
+    use_ssl = os.getenv("SMTP_USE_SSL", "false").strip().lower() == "true"
 
     try:
         if use_ssl:
