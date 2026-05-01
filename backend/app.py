@@ -109,6 +109,40 @@ def fetch_all(cursor, query, values=None):
     cursor.execute(query, values or ())
     return cursor.fetchall()
 
+def ensure_schema():
+    """Self-healing: Automatically create missing tables/columns in production."""
+    try:
+        from mysql.connector import Error
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # 1. Create book_requests table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS book_requests (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                book_id INT NOT NULL,
+                student_id INT NOT NULL,
+                request_time DATETIME NOT NULL,
+                status ENUM('pending', 'approved', 'rejected', 'cancelled') DEFAULT 'pending',
+                rejection_reason VARCHAR(255),
+                FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
+                FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+        
+        # 2. Add raw_password column to users if it doesn't exist
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN raw_password VARCHAR(255)")
+        except:
+            pass # Already exists or couldn't add
+            
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("Schema synchronization completed successfully.")
+    except Exception as e:
+        print(f"Schema synchronization warning: {e}")
+
 
 def calculate_fine(due_date, return_date=None):
     returned = return_date or get_ist_now()
@@ -641,7 +675,7 @@ def students_api():
         cursor = conn.cursor(dictionary=True)
         students = fetch_all(
             cursor,
-            "SELECT id, name, username, email, raw_password FROM users WHERE role = 'student' ORDER BY name",
+            "SELECT id, name, username, email FROM users WHERE role = 'student' ORDER BY name",
         )
         return json_ok("Students loaded.", students=students)
     except Error as exc:
@@ -1417,6 +1451,13 @@ def reset_request_api(request_id):
         return json_ok("Request reset successfully.")
     except Exception as e:
         return json_error(str(e))
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "conn" in locals(): conn.close()
+
+# Ensure DB schema is up to date on startup
+ensure_schema()
 
 if __name__ == "__main__":
-    app.run(port=int(os.getenv("PORT", "5000")), debug=True, use_reloader=False)
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
