@@ -171,7 +171,7 @@ def send_reset_email(to_email, name, code):
         return False, f"Email could not be sent: {exc}"
 
 
-@app.route("/api/test-network")
+@app.route("/api/test-network", methods=["GET", "POST"])
 def test_network_api():
     """Diagnostic route to check outbound network connectivity."""
     import socket
