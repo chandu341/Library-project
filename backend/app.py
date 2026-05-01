@@ -171,6 +171,30 @@ def send_reset_email(to_email, name, code):
         return False, f"Email could not be sent: {exc}"
 
 
+@app.route("/api/test-network")
+def test_network_api():
+    """Diagnostic route to check outbound network connectivity."""
+    import socket
+    host = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
+    port = to_int(os.getenv("SMTP_PORT", "465").strip(), 465)
+    
+    results = {
+        "configured_host": host,
+        "configured_port": port,
+        "dns_resolve": None,
+        "connection": None
+    }
+    
+    try:
+        results["dns_resolve"] = socket.gethostbyname(host)
+        s = socket.create_connection((host, port), timeout=10)
+        s.close()
+        results["connection"] = "Success"
+        return jsonify({"success": True, "message": "Network check passed.", "details": results})
+    except Exception as e:
+        results["connection"] = f"Failed: {str(e)}"
+        return jsonify({"success": False, "message": "Network check failed.", "details": results})
+
 def get_library_stats():
     """Fetch real-time library statistics for the landing page."""
     try:
