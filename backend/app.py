@@ -227,16 +227,25 @@ def debug_db_api():
 
 @app.route("/api/admin-force-reset")
 def force_reset_admin_api():
-    """Emergency route to reset admin passwords to 'chandu123'."""
+    """Emergency route to reset Chandu and Ratna passwords."""
     from werkzeug.security import generate_password_hash
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        new_hash = generate_password_hash("chandu123")
-        # Update all admins for safety
-        cursor.execute("UPDATE users SET password_hash = %s WHERE role = 'admin'", (new_hash,))
+        
+        # Reset Admin (Chandu)
+        admin_hash = generate_password_hash("chandu123")
+        cursor.execute("UPDATE users SET password_hash = %s WHERE LOWER(username) = 'chandu'", (admin_hash,))
+        
+        # Reset Student (Ratna)
+        student_hash = generate_password_hash("ratna123")
+        cursor.execute("UPDATE users SET password_hash = %s WHERE LOWER(username) = 'ratna'", (student_hash,))
+        
         conn.commit()
-        return jsonify({"success": True, "message": "All admin passwords have been reset to 'chandu123'. You can now login."})
+        return jsonify({
+            "success": True, 
+            "message": "Passwords reset: Chandu -> chandu123, Ratna -> ratna123. You can now login."
+        })
     except Exception as e:
         return jsonify({"success": False, "message": f"Reset failed: {str(e)}"})
 
