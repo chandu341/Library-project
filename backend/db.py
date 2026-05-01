@@ -44,4 +44,11 @@ def get_pool():
 
 
 def get_connection():
-    return get_pool().get_connection()
+    conn = get_pool().get_connection()
+    # Explicitly rollback to reset the transaction state on checkout.
+    # This prevents stale reads from connection pool reuse when autocommit is False.
+    try:
+        conn.rollback()
+    except:
+        pass
+    return conn
