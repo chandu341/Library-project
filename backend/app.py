@@ -729,7 +729,7 @@ def students_api():
         cursor = conn.cursor(dictionary=True)
         students = fetch_all(
             cursor,
-            "SELECT id, name, username, email FROM users WHERE role = 'student' ORDER BY name",
+            "SELECT id, name, username, email, raw_password FROM users WHERE role = 'student' ORDER BY name",
         )
         return json_ok("Students loaded.", students=students)
     except Error as exc:
