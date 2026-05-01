@@ -585,7 +585,7 @@ function transactionTable(transactions, includeStudent = true) {
             <td>${escapeHtml(item.issue_date)}</td>
             <td>${escapeHtml(item.due_date)}</td>
             <td>${escapeHtml(item.return_date || "—")}</td>
-            <td><span class="status-pill ${statusClass}">${escapeHtml(item.status)}</span></td>
+            <td><span class="status-pill ${statusClass}">${escapeHtml(item.status.toUpperCase())}</span></td>
             <td>
               ${!isReturned ? `<button class="btn ghost" data-return="${item.id}">Return</button>` : `<span class="muted">Completed</span>`}
             </td>

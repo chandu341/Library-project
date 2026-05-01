@@ -82,7 +82,7 @@ def role_required(role):
             user = current_user()
             if not user:
                 return json_error("Please login first.", 401)
-            if user["role"] != role:
+            if user["role"].lower() != role.lower():
                 return json_error("You do not have permission for this action.", 403)
             return view(*args, **kwargs)
 
@@ -334,8 +334,8 @@ def forgot_password_api():
     identifier = (data.get("identifier") or "").strip()
     role = (data.get("role") or "").strip().lower()
 
-    if not identifier or role != "admin":
-        return json_error("Only admins can reset their password via email.")
+    if not identifier or role not in {"admin", "student"}:
+        return json_error("Please provide a valid username/email and role.")
 
     try:
         conn = get_connection()
@@ -345,7 +345,7 @@ def forgot_password_api():
             """
             SELECT id, name, username, email
             FROM users
-            WHERE (username = %s OR email = %s) AND role = %s
+            WHERE (LOWER(username) = LOWER(%s) OR LOWER(email) = LOWER(%s)) AND role = %s
             """,
             (identifier, identifier, role),
         )
@@ -408,15 +408,21 @@ def forgot_username_api():
         cursor = conn.cursor(dictionary=True)
         user = fetch_one(
             cursor,
-            "SELECT name, username, email FROM users WHERE email = %s AND role = 'admin'",
-            (email,),
+            "SELECT name, username, email FROM users WHERE LOWER(email) = LOWER(%s) AND role = %s",
+            (email, 'admin'),
         )
+        if not user:
+            user = fetch_one(
+                cursor,
+                "SELECT name, username, email FROM users WHERE LOWER(email) = LOWER(%s)",
+                (email,),
+            )
 
         if not user:
             return json_ok("If the email is registered to an admin, the username has been sent.")
 
-        subject = "Your Admin Username"
-        body = f"Hello {user['name']},\n\nYour admin username is: {user['username']}\n\nYou can now login to the system."
+        subject = f"Your {user.get('role', 'Library') if 'role' in user else 'Library'} Username"
+        body = f"Hello {user['name']},\n\nYour username is: {user['username']}\n\nYou can now login to the system."
         
         sent, message = send_email(user["email"], subject, body)
         if not sent:
@@ -554,10 +560,8 @@ def logout():
 
 
 @app.route("/admin")
-@login_required
+@role_required("admin")
 def admin_dashboard():
-    if current_user()["role"] != "admin":
-        return redirect(url_for("student_dashboard"))
     return render_template("admin_dashboard.html", user=current_user())
 
 

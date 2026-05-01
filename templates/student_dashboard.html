@@ -42,14 +42,14 @@
       <div>
         <p class="eyebrow">Welcome, {{ user.name }}</p>
         <h1>Student Dashboard</h1>
-        <p>Search the catalog, get available books, and return them before the due date.</p>
+        <p>Search the catalog, request books, and manage your active loans from your dashboard.</p>
       </div>
       <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1000&q=80" alt="Open books">
     </section>
 
     <section class="stats-grid reveal">
       <article class="stat-card">
-        <span>Books I Have</span>
+        <span>Issued Books</span>
         <strong data-counter id="studentIssued">0</strong>
       </article>
       <article class="stat-card">
@@ -87,7 +87,7 @@
       <div class="panel-heading row-heading">
         <div>
           <p class="eyebrow">My desk</p>
-          <h2>Books I Have</h2>
+          <h2>Issued Books</h2>
         </div>
         <button class="btn ghost" id="refreshStudent">Refresh</button>
       </div>
@@ -95,6 +95,6 @@
     </section>
   </main>
 
-  <script src="{{ url_for('static', filename='js/app.js') }}?v=2.9"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}?v=3.2"></script>
 </body>
 </html>

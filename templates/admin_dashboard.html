@@ -26,7 +26,7 @@
       <div class="nav-links" data-nav-links>
         <a href="#books">Books</a>
         <a href="#students">Students</a>
-        <a href="#issue">Issue Desk</a>
+        <a href="#issue">Circulation Desk</a>
         <a href="#requests-section">Book Requests</a>
         <a href="#reports">Reports</a>
       </div>
@@ -73,14 +73,14 @@
       <div>
         <p class="eyebrow">Welcome, {{ user.name }}</p>
         <h1>Admin Dashboard</h1>
-        <p>Track stock, give books, monitor returns, and view overdue activity from one place.</p>
+        <p>Track stock, issue books, monitor returns, and view overdue activity from one place.</p>
       </div>
       <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1000&q=80" alt="Library shelves">
     </section>
 
     <section class="stats-grid reveal">
       <article class="stat-card">
-        <span>Books Out</span>
+        <span>Issued Books</span>
         <strong data-counter id="statIssued">0</strong>
       </article>
       <article class="stat-card">
@@ -217,23 +217,23 @@
     <section id="issue" class="workspace-grid">
       <div class="panel reveal">
         <div class="panel-heading">
-          <p class="eyebrow">Give a Book</p>
-          <h2>Give Book</h2>
+          <p class="eyebrow">Issue a Book</p>
+          <h2>Issue Book</h2>
         </div>
         <form id="issueForm" class="form-grid">
           <label>Student <select id="issueStudent" required></select></label>
           <label>Book <select id="issueBook" required></select></label>
-          <button class="btn primary" type="submit">Give Book</button>
+          <button class="btn primary" type="submit">Issue Book</button>
           <p id="issueMessage" class="form-message"></p>
         </form>
       </div>
       <div id="issued-books" class="panel wide reveal">
         <div class="panel-heading row-heading">
           <div>
-            <p class="eyebrow">Books Out</p>
-            <h2>Currently Out</h2>
+            <p class="eyebrow">Issued Books</p>
+            <h2>Issued Books</h2>
           </div>
-          <button class="btn ghost" id="refreshAdmin">Refresh List</button>
+          <button class="btn ghost" id="refreshAdmin">Refresh</button>
         </div>
         <div id="adminTransactions" class="table-wrap"></div>
       </div>
@@ -245,7 +245,7 @@
           <p class="eyebrow">Awaiting Approval</p>
           <h2>Book Requests</h2>
         </div>
-        <button class="btn ghost" onclick="refreshAdmin()">Refresh Requests</button>
+        <button class="btn ghost" onclick="refreshAdmin()">Refresh</button>
       </div>
       <div id="adminRequests" class="table-wrap"></div>
     </section>
@@ -253,16 +253,16 @@
     <section id="reports" class="panel reveal">
       <div class="panel-heading">
         <p class="eyebrow">Reports</p>
-        <h2>Out, Returned, Overdue</h2>
+        <h2>Issued, Returned, Overdue</h2>
       </div>
       <div class="reports-grid">
-        <div><h3>Out</h3><div id="issuedReport" class="report-list"></div></div>
+        <div><h3>Issued</h3><div id="issuedReport" class="report-list"></div></div>
         <div><h3>Returned</h3><div id="returnedReport" class="report-list"></div></div>
         <div><h3>Overdue</h3><div id="overdueReport" class="report-list"></div></div>
       </div>
     </section>
   </main>
 
-  <script src="{{ url_for('static', filename='js/app.js') }}?v=2.9"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}?v=3.2"></script>
 </body>
 </html>
