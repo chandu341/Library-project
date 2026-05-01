@@ -611,9 +611,8 @@ async function loadTransactions(page) {
   if (!target) return [];
 
   const data = await api("/transactions");
-  const transactions = page === "student" 
-    ? data.transactions.filter(t => t.status === 'issued' || t.status === 'overdue')
-    : data.transactions;
+  // Students see all their transactions (issued, overdue, returned) so they can see return time
+  const transactions = data.transactions;
     
   target.innerHTML = transactionTable(transactions, page === "admin");
 

@@ -159,7 +159,14 @@ def ensure_schema():
 
 def calculate_fine(due_date, return_date=None):
     returned = return_date or get_ist_now()
-    days_late = max((returned - due_date).days, 0)
+    # Normalize: MySQL can return due_date as date, while return_date is datetime
+    if hasattr(due_date, 'hour'):
+        due_dt = due_date
+    else:
+        due_dt = datetime.combine(due_date, datetime.min.time())
+    if not hasattr(returned, 'hour'):
+        returned = datetime.combine(returned, datetime.min.time())
+    days_late = max((returned - due_dt).days, 0)
     return days_late * FINE_PER_DAY
 
 
