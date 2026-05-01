@@ -129,12 +129,25 @@ def ensure_schema():
                 FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
-        
         # 2. Add raw_password column to users if it doesn't exist
         try:
             cursor.execute("ALTER TABLE users ADD COLUMN raw_password VARCHAR(255)")
         except:
             pass # Already exists or couldn't add
+            
+        # 3. Create password_reset_tokens table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                email VARCHAR(160) NOT NULL,
+                otp_code VARCHAR(255) NOT NULL,
+                expiry_time DATETIME NOT NULL,
+                is_used BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_password_reset_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
             
         conn.commit()
         cursor.close()
