@@ -21,11 +21,11 @@ def env_value(*names, default=None, strip=True):
 
 
 DB_CONFIG = {
-    "host": env_value("MYSQL_HOST", "DB_HOST", default="localhost"),
-    "port": int(env_value("MYSQL_PORT", "DB_PORT", default="3306")),
-    "user": env_value("MYSQL_USER", "DB_USER", default="root"),
-    "password": env_value("MYSQL_PASSWORD", "DB_PASSWORD", default="", strip=False),
-    "database": env_value("MYSQL_DB", "DB_NAME", default="library_management"),
+    "host": env_value("MYSQLHOST", "MYSQL_HOST", "DB_HOST", default="localhost"),
+    "port": int(env_value("MYSQLPORT", "MYSQL_PORT", "DB_PORT", default="3306")),
+    "user": env_value("MYSQLUSER", "MYSQL_USER", "DB_USER", default="root"),
+    "password": env_value("MYSQLPASSWORD", "MYSQL_PASSWORD", "DB_PASSWORD", default="", strip=False),
+    "database": env_value("MYSQLDATABASE", "MYSQL_DB", "DB_NAME", default="library_management"),
 }
 
 _pool = None
