@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS books (
   cover_url VARCHAR(500),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_books_title (title),
   CHECK (total_quantity >= 0),
   CHECK (available_quantity >= 0)
 );
@@ -38,17 +37,29 @@ CREATE TABLE IF NOT EXISTS transactions (
   fine_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_transactions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT fk_transactions_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE RESTRICT
+  CONSTRAINT fk_transactions_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS password_resets (
+CREATE TABLE IF NOT EXISTS book_requests (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  book_id INT NOT NULL,
+  student_id INT NOT NULL,
+  request_time DATETIME NOT NULL,
+  status ENUM('pending', 'approved', 'rejected', 'cancelled') DEFAULT 'pending',
+  rejection_reason VARCHAR(255),
+  FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
+  FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
-  code_hash VARCHAR(255) NOT NULL,
-  expires_at DATETIME NOT NULL,
-  used BOOLEAN NOT NULL DEFAULT FALSE,
+  email VARCHAR(160) NOT NULL,
+  otp_code VARCHAR(255) NOT NULL,
+  expiry_time DATETIME NOT NULL,
+  is_used BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_password_resets_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  CONSTRAINT fk_password_reset_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 INSERT INTO users (name, username, email, password_hash, role) VALUES

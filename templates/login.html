@@ -7,6 +7,11 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body class="auth-page">
+  <div class="bg-blobs" aria-hidden="true">
+    <div class="blob"></div>
+    <div class="blob"></div>
+    <div class="blob"></div>
+  </div>
   <nav class="navbar glass-nav app-navbar">
     <a class="brand" href="#home" aria-label="Library Management System">
       <span class="logo-mark" aria-hidden="true"><span></span></span>
@@ -73,41 +78,36 @@
         <div class="mini-chart" aria-label="Issued and returned books chart">
           <div class="chart-row">
             <span>Issued</span>
-            <div class="chart-track"><span style="width: 72%"></span></div>
-            <strong>72</strong>
+            {% set issued_percent = (stats.today_issued / stats.total_books * 100) | round if stats.total_books > 0 else 0 %}
+            <div class="chart-track"><span style="width: 0" data-percent="{{ issued_percent }}"></span></div>
+            <strong>{{ stats.today_issued }}</strong>
           </div>
           <div class="chart-row">
             <span>Returned</span>
-            <div class="chart-track returned"><span style="width: 54%"></span></div>
-            <strong>54</strong>
+            {% set returned_percent = (stats.today_returned / stats.total_books * 100) | round if stats.total_books > 0 else 0 %}
+            <div class="chart-track returned"><span style="width: 0" data-percent="{{ returned_percent }}"></span></div>
+            <strong>{{ stats.today_returned }}</strong>
           </div>
         </div>
 
         <div class="activity-list">
+          {% for activity in stats.activities %}
           <div class="activity-item">
-            <span class="activity-icon issued"></span>
+            <span class="activity-icon {{ activity.type }}"></span>
             <div>
-              <strong>Book issued</strong>
-              <small>Ratna received Book 1</small>
+              <strong>{{ activity.title }}</strong>
+              <small>{{ activity.description }}</small>
             </div>
-            <em>On time</em>
+            <em>{{ activity.status }}</em>
           </div>
+          {% else %}
           <div class="activity-item">
-            <span class="activity-icon returned"></span>
             <div>
-              <strong>Book returned</strong>
-              <small>Pannu returned Book 3</small>
+              <strong>No activity yet</strong>
+              <small>Ready for circulation</small>
             </div>
-            <em>Closed</em>
           </div>
-          <div class="activity-item">
-            <span class="activity-icon overdue"></span>
-            <div>
-              <strong>Fine review</strong>
-              <small>Karuna has one overdue item</small>
-            </div>
-            <em>Alert</em>
-          </div>
+          {% endfor %}
         </div>
       </aside>
     </section>
@@ -120,22 +120,22 @@
       <div class="metrics-section">
         <article class="metric-card reveal reveal-card">
           <span class="metric-icon books-icon" aria-hidden="true"></span>
-          <strong>520</strong>
+          <strong data-landing-counter="{{ stats.total_books }}">0</strong>
           <p>Total Books</p>
         </article>
         <article class="metric-card reveal reveal-card">
           <span class="metric-icon students-icon" aria-hidden="true"></span>
-          <strong>128</strong>
+          <strong data-landing-counter="{{ stats.total_students }}">0</strong>
           <p>Active Students</p>
         </article>
         <article class="metric-card reveal reveal-card">
           <span class="metric-icon issued-icon" aria-hidden="true"></span>
-          <strong>72</strong>
+          <strong data-landing-counter="{{ stats.books_issued }}">0</strong>
           <p>Books Issued</p>
         </article>
         <article class="metric-card reveal reveal-card">
           <span class="metric-icon overdue-icon" aria-hidden="true"></span>
-          <strong>06</strong>
+          <strong data-landing-counter="{{ stats.overdue_books }}">0</strong>
           <p>Overdue Books</p>
         </article>
       </div>
@@ -198,9 +198,9 @@
       <div class="portal-copy reveal">
         <p class="eyebrow">Secure access</p>
         <h2>Choose the right workspace and continue where the desk left off.</h2>
-        <p>Admins can manage stock, issue books, and watch reports. Students can browse the collection and stay ahead of due dates.</p>
+        <p>Admins can manage stock, create student accounts, issue books, and watch reports. Students can browse the collection and stay ahead of due dates.</p>
         <div class="portal-points">
-          <div><strong>Admin</strong><span>Catalog control, issue desk, reports</span></div>
+          <div><strong>Admin</strong><span>Catalog control, student accounts, issue desk, reports</span></div>
           <div><strong>Student</strong><span>Search, self-issue, return tracking</span></div>
         </div>
       </div>
@@ -221,20 +221,20 @@
             <span id="selectedRoleLabel">Admin Login</span>
             <button type="button" class="link-button" id="changeRole">Change role</button>
           </div>
-          <form id="loginForm" class="form-grid">
+          <form id="loginForm" class="form-grid" autocomplete="off">
             <input id="role" name="role" type="hidden" value="admin">
             <label for="username">
               Username / Email
-              <input id="username" name="username" type="text" placeholder="Username / Email" autocomplete="username" required>
+              <input id="username" name="username" type="text" autocomplete="off" required>
             </label>
             <label for="password">
               Password
               <span class="password-field">
-                <input id="password" name="password" type="password" placeholder="Password" autocomplete="current-password" required>
+                <input id="password" name="password" type="password" autocomplete="off" required>
                 <button class="password-toggle" id="togglePassword" type="button">Show</button>
               </span>
             </label>
-            <div class="form-support">
+            <div class="form-support" id="forgotLinks">
               <button class="link-button" id="forgotPasswordLink" type="button">Forgot Password?</button>
             </div>
             <button class="btn primary full" id="submitLogin" type="submit">Login</button>
@@ -243,30 +243,44 @@
         </div>
 
         <div id="forgotPasswordShell" class="login-form-shell reset-shell" hidden>
-          <div class="selected-role">
-            <span id="resetRoleLabel">Admin Password Reset</span>
-            <button type="button" class="link-button" id="backToLogin">Back to login</button>
-          </div>
-          <form id="forgotPasswordForm" class="form-grid">
+          <form id="forgotPasswordForm" class="form-grid" autocomplete="off" hidden>
+            <div class="selected-role">
+              <span id="resetRoleLabel">Admin Password Reset</span>
+              <button type="button" class="link-button" id="backToLogin">Back to login</button>
+            </div>
             <input id="resetRole" name="resetRole" type="hidden" value="admin">
             <label for="resetIdentifier">
               Username / Email
-              <input id="resetIdentifier" name="resetIdentifier" type="text" placeholder="Username / Email" autocomplete="username" required>
+              <input id="resetIdentifier" name="resetIdentifier" type="text" autocomplete="off" required>
             </label>
             <button class="btn primary full" type="submit">Send Email Code</button>
             <p id="forgotMessage" class="form-message"></p>
           </form>
 
-          <form id="resetPasswordForm" class="form-grid reset-password-form" hidden>
-            <label for="resetCode">
-              Email Code
-              <input id="resetCode" name="resetCode" type="text" placeholder="6-digit code" inputmode="numeric" maxlength="6" required>
+
+
+          <form id="verifyOtpForm" class="form-grid" autocomplete="off" hidden>
+            <label for="verifyCode">
+              Email OTP Code
+              <input id="verifyCode" name="verifyCode" type="text" inputmode="numeric" maxlength="6" autocomplete="off" required>
             </label>
+            <button class="btn primary full" type="submit">Verify Code</button>
+            <p id="verifyMessage" class="form-message"></p>
+          </form>
+
+          <form id="resetPasswordForm" class="form-grid reset-password-form" autocomplete="off" hidden>
             <label for="newPassword">
               New Password
               <span class="password-field">
-                <input id="newPassword" name="newPassword" type="password" placeholder="New password" autocomplete="new-password" required>
+                <input id="newPassword" name="newPassword" type="password" autocomplete="off" required minlength="6">
                 <button class="password-toggle" id="toggleNewPassword" type="button">Show</button>
+              </span>
+            </label>
+            <label for="confirmPassword">
+              Confirm New Password
+              <span class="password-field">
+                <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="off" required minlength="6">
+                <button class="password-toggle" id="toggleConfirmPassword" type="button">Show</button>
               </span>
             </label>
             <button class="btn primary full" type="submit">Update Password</button>
