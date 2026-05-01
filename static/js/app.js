@@ -598,11 +598,7 @@ function transactionTable(transactions, includeStudent = true) {
             <td>${escapeHtml(item.return_date || "—")}</td>
             <td><span class="status-pill ${statusClass}">${escapeHtml(item.status.toUpperCase())}</span></td>
             <td>
-              ${includeStudent ? 
-                (!isReturned ? `<button class="btn ghost" data-return="${item.id}">Return</button>` : `<span class="muted">Completed</span>`)
-                : 
-                (item.status === 'rejected' ? `<button class="btn ghost danger" data-dismiss-request="${item.id}">Dismiss</button>` : `<span class="muted">—</span>`)
-              }
+              ${!isReturned ? `<button class="btn ghost" data-return="${item.id}">Return</button>` : `<span class="muted">Completed</span>`}
             </td>
           </tr>`;
         }).join("")}

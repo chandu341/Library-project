@@ -1081,11 +1081,13 @@ def return_api():
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         params = [transaction_id]
-        if user["role"] != "student":
-            return json_error("Only students can return books directly. Please ask the student to click return from their dashboard.", 403)
-        
-        owner_clause = "AND user_id = %s"
-        params.append(user["id"])
+        if user["role"] == "student":
+            # Students can only return their own books
+            owner_clause = "AND user_id = %s"
+            params.append(user["id"])
+        else:
+            # Admins can return any book
+            owner_clause = ""
 
         transaction = fetch_one(
             cursor,
