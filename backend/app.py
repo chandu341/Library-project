@@ -480,7 +480,12 @@ def forgot_password_api():
         code = str(random.SystemRandom().randint(100000, 999999))
         sent, message = send_reset_email(user["email"], user["name"], code)
         if not sent:
-            return json_error(message, 500)
+            print(f"--- EMERGENCY OTP FALLBACK ---")
+            print(f"Could not send email to {user['email']} due to Railway restrictions.")
+            print(f"Your OTP code is: {code}")
+            print(f"------------------------------")
+            # Return success anyway so the UI moves to the OTP entry screen
+            return json_ok("Email blocked by Railway. Check Railway Deployment Logs for your OTP code to proceed.")
 
         # Invalidate old tokens
         cursor.execute(
@@ -546,7 +551,11 @@ def forgot_username_api():
         
         sent, message = send_email(user["email"], subject, body)
         if not sent:
-            return json_error(message, 500)
+            print(f"--- EMERGENCY USERNAME FALLBACK ---")
+            print(f"Could not send email to {user['email']} due to Railway restrictions.")
+            print(f"Your Username is: {user['username']}")
+            print(f"-----------------------------------")
+            return json_ok("Email blocked by Railway. Check Railway Deployment Logs for your username.")
 
         return json_ok("Username sent to your email.")
     except Exception as exc:
