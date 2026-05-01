@@ -202,7 +202,39 @@ def send_reset_email(to_email, name, code):
                 server.send_message(message)
         return True, "Reset code sent."
     except Exception as exc:
-        return False, f"Email could not be sent: {exc}"
+        return False, f"Email could not be sent. Primary failed: {exc}. To fix: change SMTP_PORT to 587 and SMTP_USE_SSL to false in Railway."
+
+
+def send_email(to_email, subject, body):
+    if not smtp_configured():
+        return False, "Email service is not configured. Please set SMTP environment variables."
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = os.getenv("SMTP_FROM")
+    message["To"] = to_email
+    message.set_content(body)
+
+    host = os.getenv("SMTP_HOST", "").strip()
+    port = int(os.getenv("SMTP_PORT", "587").strip())
+    username = os.getenv("SMTP_USERNAME", "").strip()
+    password = os.getenv("SMTP_PASSWORD", "").strip()
+    use_ssl = os.getenv("SMTP_USE_SSL", "false").strip().lower() == "true"
+
+    try:
+        if use_ssl:
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL(host, port, context=context, timeout=20) as server:
+                server.login(username, password)
+                server.send_message(message)
+        else:
+            with smtplib.SMTP(host, port, timeout=20) as server:
+                server.starttls(context=ssl.create_default_context())
+                server.login(username, password)
+                server.send_message(message)
+        return True, "Email sent."
+    except Exception as exc:
+        return False, f"Email could not be sent. Primary failed: {exc}. To fix: change SMTP_PORT to 587 and SMTP_USE_SSL to false in Railway."
 
 
 @app.route("/api/test-network", methods=["GET", "POST"])
