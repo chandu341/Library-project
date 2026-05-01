@@ -182,18 +182,48 @@ def test_network_api():
         "configured_host": host,
         "configured_port": port,
         "dns_resolve": None,
-        "connection": None
+        "ipv4_connection": None,
+        "alt_port_587": None
     }
     
     try:
         results["dns_resolve"] = socket.gethostbyname(host)
-        s = socket.create_connection((host, port), timeout=10)
+        # Try primary port
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(10)
+        s.connect((host, port))
         s.close()
-        results["connection"] = "Success"
+        results["ipv4_connection"] = "Success"
+        
+        # Try alternate port 587
+        s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s2.settimeout(5)
+        try:
+            s2.connect((host, 587))
+            results["alt_port_587"] = "Success"
+        except:
+            results["alt_port_587"] = "Failed"
+        finally:
+            s2.close()
+
         return jsonify({"success": True, "message": "Network check passed.", "details": results})
     except Exception as e:
-        results["connection"] = f"Failed: {str(e)}"
+        results["ipv4_connection"] = f"Failed: {str(e)}"
         return jsonify({"success": False, "message": "Network check failed.", "details": results})
+
+@app.route("/api/debug-db")
+def debug_db_api():
+    """Diagnostic route to see database contents."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT username, email, role FROM users")
+        users = cursor.fetchall()
+        cursor.execute("SELECT count(*) as count FROM books")
+        books_count = cursor.fetchone()["count"]
+        return jsonify({"success": True, "users": users, "books_count": books_count})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
 
 @app.route("/api/admin-force-reset")
 def force_reset_admin_api():
