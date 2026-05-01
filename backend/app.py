@@ -1509,6 +1509,27 @@ def reset_request_api(request_id):
         if "cursor" in locals(): cursor.close()
         if "conn" in locals(): conn.close()
 
+@app.route("/api/student/requests/<int:request_id>/dismiss", methods=["POST"])
+@role_required("student")
+def dismiss_request_api(request_id):
+    try:
+        user = current_user()
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        # Verify it's rejected and belongs to the student
+        req = fetch_one(cursor, "SELECT * FROM book_requests WHERE id = %s AND student_id = %s AND status = 'rejected'", (request_id, user["id"]))
+        if not req:
+            return json_error("Request not found or not rejected.")
+            
+        cursor.execute("UPDATE book_requests SET status = 'cancelled' WHERE id = %s", (request_id,))
+        conn.commit()
+        return json_ok("Request dismissed successfully.")
+    except Exception as e:
+        return json_error(str(e))
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "conn" in locals(): conn.close()
+
 # Ensure DB schema is up to date on startup
 ensure_schema()
 

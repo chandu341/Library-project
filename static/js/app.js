@@ -553,6 +553,17 @@ function wireBookActions(books, page) {
         alert(`Rejection Reason: ${button.dataset.rejectionReason}`);
       });
     });
+
+    qsa("[data-dismiss-request]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        if (!confirm("Dismiss this rejected request? You will be able to request this book again.")) return;
+        try {
+          const res = await api(`/api/student/requests/${button.dataset.dismissRequest}/dismiss`, { method: "POST" });
+          alert(res.message);
+          await refreshStudent();
+        } catch (err) { alert(err.message); }
+      });
+    });
   }
 }
 
@@ -587,7 +598,11 @@ function transactionTable(transactions, includeStudent = true) {
             <td>${escapeHtml(item.return_date || "—")}</td>
             <td><span class="status-pill ${statusClass}">${escapeHtml(item.status.toUpperCase())}</span></td>
             <td>
-              ${!isReturned ? `<button class="btn ghost" data-return="${item.id}">Return</button>` : `<span class="muted">Completed</span>`}
+              ${includeStudent ? 
+                (!isReturned ? `<button class="btn ghost" data-return="${item.id}">Return</button>` : `<span class="muted">Completed</span>`)
+                : 
+                (item.status === 'rejected' ? `<button class="btn ghost danger" data-dismiss-request="${item.id}">Dismiss</button>` : `<span class="muted">—</span>`)
+              }
             </td>
           </tr>`;
         }).join("")}
