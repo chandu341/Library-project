@@ -401,8 +401,15 @@ select {
 .dashboard-hero h1 {
   margin: 0;
   max-width: 720px;
-  font-size: clamp(2.2rem, 6vw, 5rem);
-  line-height: 1;
+  font-size: clamp(2.4rem, 6vw, 5.2rem);
+  line-height: 1.1;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ffffff 0%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);
 }
 
 .hero-copy,
@@ -714,6 +721,14 @@ select {
 .panel-heading h2,
 .reports-grid h3 {
   margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ffffff 40%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.01em;
 }
 
 .row-heading {
@@ -1601,8 +1616,11 @@ th {
 .contact-section h2,
 .portal-copy h2 {
   font-family: "Cormorant Garamond", Georgia, serif;
-  letter-spacing: 0;
   color: #ffffff;
+  background: linear-gradient(135deg, #ffffff 30%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
 }
 
 .navbar {
@@ -1632,7 +1650,7 @@ th {
   position: relative;
   padding: 10px 2px;
   border-radius: 0;
-  color: var(--text);
+  color: #465568;
   font-weight: 700;
   background: transparent;
   transition: color var(--transition), transform var(--transition);
@@ -1652,15 +1670,13 @@ th {
   transition: transform var(--transition);
 }
 
-.nav-links a:hover,
-.nav-links a.active {
+.nav-links a:hover {
   color: var(--text);
   background: transparent;
   transform: translateY(-1px);
 }
 
-.nav-links a:hover::after,
-.nav-links a.active::after {
+.nav-links a:hover::after {
   transform: scaleX(1);
 }
 
