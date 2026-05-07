@@ -1,100 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student - Library Management System</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=1.1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | Library SaaS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=9.0">
 </head>
 <body data-page="student">
-  <div class="bg-blobs" aria-hidden="true">
-    <div class="blob"></div>
-    <div class="blob"></div>
-    <div class="blob"></div>
-  </div>
-  <nav class="navbar glass-nav">
-    <a class="brand" href="/student">
-      <span class="logo-mark" aria-hidden="true"><span></span></span>
-      <span>Library Management System</span>
-    </a>
-    <button class="menu-toggle" data-menu-toggle aria-label="Toggle menu">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-    <div class="nav-shell">
-      <div class="nav-links" data-nav-links>
-        <a href="#books">Books</a>
-        <a href="#my-books">My Books</a>
-      </div>
-      <div class="nav-user">
-        <div class="profile-btn no-click">
-          <span class="user-avatar">👤</span>
-          <span class="user-name">{{ user.name }}</span>
-        </div>
-        <a href="/logout" class="btn danger-ghost">Logout</a>
-      </div>
+    <div class="bg-canvas" style="background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);">
+        <div class="blob blob-1" style="background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);"></div>
     </div>
-  </nav>
+    <div class="noise"></div>
 
-  <main class="dashboard-shell fade-in">
-    <section class="dashboard-hero reveal student-hero">
-      <div>
-        <p class="eyebrow">Welcome, {{ user.name }}</p>
-        <h1>Student Dashboard</h1>
-        <p>Search the catalog, request books, and manage your active loans from your dashboard.</p>
-      </div>
-      <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1000&q=80" alt="Open books">
-    </section>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div style="padding: var(--space-4); border-bottom: 1px solid var(--slate-100);">
+                <div class="flex align-center gap-4">
+                    <div style="width: 40px; height: 40px; background: var(--success); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <span style="font-weight: 800; font-size: 1.25rem; color: var(--slate-900);">MyCampus</span>
+                </div>
+            </div>
+            
+            <nav class="nav-group">
+                <a href="#dashboard" class="nav-link active"><i class="fas fa-house-chimney"></i> Home</a>
+                <a href="#catalog" class="nav-link"><i class="fas fa-book-open"></i> Find Books</a>
+                <a href="#my-readings" class="nav-link"><i class="fas fa-book-reader"></i> My Readings</a>
+            </nav>
 
-    <section class="stats-grid reveal">
-      <article class="stat-card">
-        <span>Issued Books</span>
-        <strong data-counter id="studentIssued">0</strong>
-      </article>
-      <article class="stat-card">
-        <span>Available Books</span>
-        <strong data-counter id="studentAvailable">0</strong>
-      </article>
-      <article class="stat-card">
-        <span>Subject Count</span>
-        <strong data-counter id="studentSubjects">0</strong>
-      </article>
-      <article class="stat-card warning">
-        <span>Pending Fine</span>
-        <strong id="studentFine">₹0</strong>
-      </article>
-      <article class="stat-card">
-        <span>Total Library Books</span>
-        <strong data-counter id="studentTotalBooks">0</strong>
-      </article>
-    </section>
+            <div style="padding: var(--space-4); border-top: 1px solid var(--slate-100);">
+                <div class="flex align-center gap-4 mb-8">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--success); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700;">{{ user.name[0] }}</div>
+                    <div class="flex flex-column" style="display: flex; flex-direction: column;">
+                        <span style="font-size: 0.875rem; font-weight: 700;">{{ user.name }}</span>
+                        <span style="font-size: 0.75rem; color: var(--slate-500);">Student</span>
+                    </div>
+                </div>
+                <a href="/logout" class="nav-link" style="color: var(--danger);"><i class="fas fa-right-from-bracket"></i> Logout</a>
+            </div>
+        </aside>
 
+        <!-- Main Content -->
+        <main class="main-container">
+            <header class="top-bar">
+                <h1 style="font-size: 1.25rem; font-weight: 800;">Welcome back, {{ user.name.split(' ')[0] }}! 👋</h1>
+                <div style="position: relative; width: 360px;">
+                    <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--slate-400);"></i>
+                    <input type="text" id="bookSearch" placeholder="Search the library..." style="width: 100%; height: 44px; padding-left: 44px; border-radius: 22px; border: 1px solid var(--slate-200); background: #ffffff; outline: none; box-shadow: var(--shadow-sm);">
+                </div>
+            </header>
 
+            <div class="content-scroll fade-up">
+                <!-- Welcome Banner -->
+                <div class="card mb-8" style="background: linear-gradient(135deg, var(--brand-600) 0%, var(--brand-700) 100%); color: #ffffff; padding: var(--space-8); border: none;">
+                    <div class="grid grid-12 align-center">
+                        <div class="col-span-8">
+                            <h2 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 12px; line-height: 1;">Knowledge is Power.</h2>
+                            <p style="opacity: 0.9; font-size: 1.125rem; max-width: 500px;">Explore over {{ stats.total_books }} titles across various categories. Borrow, read, and return seamlessly.</p>
+                            <button class="btn btn-white mt-4" onclick="window.location.hash='#catalog'">Browse Catalog</button>
+                        </div>
+                        <div class="col-span-4" style="text-align: right; opacity: 0.2;">
+                            <i class="fas fa-book-open-reader" style="font-size: 8rem;"></i>
+                        </div>
+                    </div>
+                </div>
 
-    <section id="books" class="panel reveal">
-      <div class="panel-heading row-heading">
-        <div>
-          <p class="eyebrow">Inventory</p>
-          <h2>Available Books</h2>
-        </div>
-        <input class="search-input" id="bookSearch" placeholder="Search books to request..." autocomplete="off">
-      </div>
-      <div id="bookGrid" class="book-grid"></div>
-    </section>
+                <!-- KPI Stats -->
+                <div class="grid grid-12 mb-8">
+                    <div class="col-span-3 kpi-card kpi-blue">
+                        <span class="kpi-label">Reading Now</span>
+                        <span class="kpi-value" id="studentIssued">0</span>
+                        <i class="fas fa-book-open" style="position: absolute; bottom: 12px; right: 12px; font-size: 2rem; opacity: 0.2;"></i>
+                    </div>
+                    <div class="col-span-3 kpi-card kpi-orange" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);">
+                        <span class="kpi-label">Pending Dues</span>
+                        <span class="kpi-value" id="studentFine">₹0</span>
+                        <i class="fas fa-wallet" style="position: absolute; bottom: 12px; right: 12px; font-size: 2rem; opacity: 0.2;"></i>
+                    </div>
+                    <div class="col-span-3 kpi-card kpi-green">
+                        <span class="kpi-label">Ready to Borrow</span>
+                        <span class="kpi-value" id="studentAvailable">0</span>
+                        <i class="fas fa-check-circle" style="position: absolute; bottom: 12px; right: 12px; font-size: 2rem; opacity: 0.2;"></i>
+                    </div>
+                    <div class="col-span-3 kpi-card kpi-purple">
+                        <span class="kpi-label">Subject Count</span>
+                        <span class="kpi-value" id="studentSubjects">0</span>
+                        <i class="fas fa-tags" style="position: absolute; bottom: 12px; right: 12px; font-size: 2rem; opacity: 0.2;"></i>
+                    </div>
+                </div>
 
-    <section id="my-books" class="panel reveal">
-      <div class="panel-heading row-heading">
-        <div>
-          <p class="eyebrow">My desk</p>
-          <h2>Issued Books</h2>
-        </div>
-        <button class="btn ghost" id="refreshStudent">Refresh</button>
-      </div>
-      <div id="studentTransactions" class="table-wrap"></div>
-    </section>
-  </main>
+                <!-- Catalog Grid -->
+                <section id="catalog" class="mb-12">
+                    <div class="flex justify-between align-center mb-8">
+                        <h2 style="font-size: 1.5rem; font-weight: 800;">Available Books</h2>
+                    </div>
+                    <div id="bookGrid" class="grid grid-12">
+                        <!-- Book cards rendered via JS -->
+                    </div>
+                </section>
 
-  <script src="{{ url_for('static', filename='js/app.js') }}?v=3.2"></script>
+                <!-- My Readings -->
+                <section id="my-readings" class="table-shell">
+                    <div class="table-header">
+                        <h2 style="font-size: 1.125rem;">My Reading History</h2>
+                        <button class="btn btn-white btn-sm" onclick="refreshStudent()"><i class="fas fa-sync"></i> Sync Records</button>
+                    </div>
+                    <div id="studentTransactions"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=9.0"></script>
 </body>
 </html>

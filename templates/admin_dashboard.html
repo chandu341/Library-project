@@ -1,268 +1,207 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Library Management System</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=1.1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Library SaaS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=9.0">
 </head>
-<body data-page="admin">
-  <div class="bg-blobs" aria-hidden="true">
-    <div class="blob"></div>
-    <div class="blob"></div>
-    <div class="blob"></div>
-  </div>
-  <nav class="navbar glass-nav">
-    <a class="brand" href="/admin">
-      <span class="logo-mark" aria-hidden="true"><span></span></span>
-      <span>Library Management System</span>
-    </a>
-    <button class="menu-toggle" data-menu-toggle aria-label="Toggle menu">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-    <div class="nav-shell">
-      <div class="nav-links" data-nav-links>
-        <a href="#books">Books</a>
-        <a href="#students">Students</a>
-        <a href="#issue">Circulation Desk</a>
-        <a href="#requests-section">Book Requests</a>
-        <a href="#reports">Reports</a>
-      </div>
-      <div class="nav-user">
-        <div class="notification-wrapper" style="position: relative;">
-          <button class="icon-btn" id="bellIcon" title="Notifications" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; padding: 0.5rem;">
-            🔔<span id="bellBadge" class="badge danger animate-pulse" style="position: absolute; top: 0px; right: 0px; display: none; font-size: 0.7rem; padding: 0.1rem 0.3rem;">0</span>
-          </button>
-          <div id="notificationDropdown" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 1rem; width: 300px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 50;">
-            <h4 style="margin: 0; padding-bottom: 0.5rem; border-bottom: 1px solid #374151; color: #ffffff;">New Requests</h4>
-            <div id="notificationList" style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; max-height: 200px; overflow-y: auto; color: #d1d5db; font-size: 0.9rem;"></div>
-          </div>
-        </div>
-        <button class="profile-btn" id="openSettings" title="Account Settings">
-          <span class="user-avatar">👤</span>
-          <span class="user-name">{{ user.name }}</span>
-        </button>
-        <a href="/logout" class="btn danger-ghost">Logout</a>
-      </div>
+<body>
+    <!-- Premium Background -->
+    <div class="bg-canvas">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
     </div>
-  </nav>
+    <div class="noise"></div>
 
-  <!-- Settings Modal -->
-  <div id="settingsModal" class="modal-overlay" hidden>
-    <div class="modal-content panel">
-      <div class="panel-heading row-heading">
-        <div>
-          <p class="eyebrow">Account Settings</p>
-          <h2>Update Profile</h2>
-        </div>
-        <button class="close-modal" id="closeSettings">&times;</button>
-      </div>
-      <form id="profileForm" class="form-grid">
-        <label>Display Name <input id="profileName" type="text" value="{{ user.name }}" required></label>
-        <label>Login Username <input id="profileUsername" type="text" value="{{ user.username }}" required></label>
-        <button class="btn primary" type="submit">Update Profile</button>
-        <p id="profileMessage" class="form-message"></p>
-      </form>
-    </div>
-  </div>
-
-  <main class="dashboard-shell fade-in">
-    <section class="dashboard-hero reveal">
-      <div>
-        <p class="eyebrow">Welcome, {{ user.name }}</p>
-        <h1>Admin Dashboard</h1>
-        <p>Track stock, issue books, monitor returns, and view overdue activity from one place.</p>
-      </div>
-      <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1000&q=80" alt="Library shelves">
-    </section>
-
-    <section class="stats-grid reveal">
-      <article class="stat-card">
-        <span>Issued Books</span>
-        <strong data-counter id="statIssued">0</strong>
-      </article>
-      <article class="stat-card">
-        <span>Total Books</span>
-        <strong data-counter id="statBooks">0</strong>
-      </article>
-      <article class="stat-card">
-        <span>Available Books</span>
-        <strong data-counter id="statAvailable">0</strong>
-      </article>
-      <article class="stat-card">
-        <span>Subject Count</span>
-        <strong data-counter id="statSubjects">0</strong>
-      </article>
-      <article class="stat-card">
-        <span>Students</span>
-        <strong data-counter id="statStudents">0</strong>
-      </article>
-      <article class="stat-card warning">
-        <span>Overdue</span>
-        <strong data-counter id="statOverdue">0</strong>
-      </article>
-    </section>
-
-    <section id="books" class="workspace-grid">
-      <div class="panel reveal">
-        <div class="panel-heading">
-          <p class="eyebrow">Book control</p>
-          <h2 id="bookFormTitle">Add Book</h2>
-        </div>
-        <form id="bookForm" class="form-grid" autocomplete="off">
-          <input type="hidden" id="bookId">
-          <label>Title <input id="bookTitle" autocomplete="off" required></label>
-          <label>Author <input id="bookAuthor" autocomplete="off" required></label>
-          <label>Category <input id="bookCategory" autocomplete="off" required></label>
-          <label>Total Quantity <input id="bookQuantity" type="number" min="1" autocomplete="off" required></label>
-          <label>Shelf <input id="bookShelf" autocomplete="off" required></label>
-          <div class="button-row">
-            <button class="btn primary" type="submit">Save Book</button>
-            <button class="btn ghost" type="button" id="resetBookForm">Clear</button>
-          </div>
-          <p id="bookMessage" class="form-message"></p>
-        </form>
-      </div>
-
-      <div class="panel wide reveal">
-        <div class="panel-heading row-heading">
-          <div>
-            <p class="eyebrow">Catalog</p>
-            <h2>Books</h2>
-          </div>
-          <input class="search-input" id="adminBookSearch" autocomplete="off" placeholder="Search books...">
-        </div>
-        <div id="adminBookGrid" class="book-grid"></div>
-      </div>
-    </section>
-
-    <section id="students" class="workspace-grid">
-      <div class="panel reveal">
-        <div class="panel-heading">
-          <p class="eyebrow">Onboarding</p>
-          <h2 id="studentFormTitle">Add Student</h2>
-        </div>
-        <form id="studentForm" class="form-grid">
-          <input id="studentId" type="hidden">
-          <label>Name <input id="studentName" type="text" required></label>
-          <label>Username <input id="studentUsername" type="text" required></label>
-          <label>Email <input id="studentEmail" type="email" required></label>
-          <label id="studentPassLabel">Password 
-            <div class="password-wrapper">
-              <input id="studentPassword" type="password" required>
-              <button type="button" class="eye-btn" data-toggle="#studentPassword">👁️</button>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div style="padding: var(--space-3); border-bottom: 1px solid var(--slate-100);">
+                <div class="flex align-center gap-2">
+                    <div class="brand-logo" style="width: 32px; height: 32px; border-radius: 6px;">
+                        <i class="fas fa-layer-group" style="font-size: 0.875rem;"></i>
+                    </div>
+                    <span class="brand-name" style="font-size: 1.125rem;">LibraryPro</span>
+                </div>
             </div>
-          </label>
-          <div class="button-row">
-            <button class="btn primary" type="submit">Save Student</button>
-            <button class="btn ghost" id="resetStudentForm" type="button">Reset</button>
-          </div>
-          <p id="studentMessage" class="form-message"></p>
-        </form>
-      </div>
-      <div class="panel wide reveal">
-        <div class="panel-heading row-heading">
-          <div>
-            <p class="eyebrow">Records</p>
-            <h2>Student Directory</h2>
-          </div>
-          <button class="btn ghost" id="refreshStudents">Refresh</button>
-        </div>
-        <div id="studentTable" class="table-wrap"></div>
-      </div>
-    </section>
+            
+            <nav class="nav-group">
+                <a href="#dashboard" class="nav-link active"><i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="#inventory" class="nav-link"><i class="fas fa-book"></i> Inventory</a>
+                <a href="#members" class="nav-link"><i class="fas fa-users"></i> Members</a>
+                <a href="#circulation" class="nav-link"><i class="fas fa-arrows-rotate"></i> Circulation</a>
+                <a href="#requests" class="nav-link"><i class="fas fa-bell"></i> Requests <span id="bellBadge" class="badge badge-danger" style="display:none; margin-left: auto;">0</span></a>
+            </nav>
 
-    <style>
-      .password-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
-      }
-      .password-wrapper input {
-        padding-right: 2.5rem;
-        width: 100%;
-      }
-      .password-wrapper .eye-btn {
-        position: absolute;
-        right: 0.5rem;
-      }
-      .eye-btn {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 1.1rem;
-        opacity: 0.6;
-        transition: opacity 0.2s;
-        padding: 0.25rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .eye-btn:hover {
-        opacity: 1;
-      }
-      .password-cell {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      .masked-pass {
-        font-family: monospace;
-        letter-spacing: 0.1em;
-      }
-    </style>
+            <div style="padding: var(--space-4); border-top: 1px solid var(--slate-100);">
+                <div class="flex align-center gap-4 mb-8" id="openSettings" style="cursor: pointer;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--slate-100); display: flex; align-items: center; justify-content: center; font-weight: 700;">A</div>
+                    <div class="flex flex-column" style="display: flex; flex-direction: column;">
+                        <span style="font-size: 0.875rem; font-weight: 700;">Admin User</span>
+                        <span style="font-size: 0.75rem; color: var(--slate-500);">System Owner</span>
+                    </div>
+                </div>
+                <a href="/logout" class="nav-link" style="color: var(--danger);"><i class="fas fa-power-off"></i> Logout</a>
+            </div>
+        </aside>
 
-    <section id="issue" class="workspace-grid">
-      <div class="panel reveal">
-        <div class="panel-heading">
-          <p class="eyebrow">Issue a Book</p>
-          <h2>Issue Book</h2>
-        </div>
-        <form id="issueForm" class="form-grid">
-          <label>Student <select id="issueStudent" required></select></label>
-          <label>Book <select id="issueBook" required></select></label>
-          <button class="btn primary" type="submit">Issue Book</button>
-          <p id="issueMessage" class="form-message"></p>
-        </form>
-      </div>
-      <div id="issued-books" class="panel wide reveal">
-        <div class="panel-heading row-heading">
-          <div>
-            <p class="eyebrow">Issued Books</p>
-            <h2>Issued Books</h2>
-          </div>
-          <button class="btn ghost" id="refreshAdmin">Refresh</button>
-        </div>
-        <div id="adminTransactions" class="table-wrap"></div>
-      </div>
-    </section>
-    
-    <section id="requests-section" class="panel reveal">
-      <div class="panel-heading row-heading">
-        <div>
-          <p class="eyebrow">Awaiting Approval</p>
-          <h2>Book Requests</h2>
-        </div>
-        <button class="btn ghost" onclick="refreshAdmin()">Refresh</button>
-      </div>
-      <div id="adminRequests" class="table-wrap"></div>
-    </section>
+        <!-- Main Content Area -->
+        <main class="main-container">
+            <header class="top-bar">
+                <div class="flex align-center gap-4">
+                    <h1 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900);">Dashboard Overview</h1>
+                </div>
+                <div class="flex align-center gap-3">
+                    <div style="position: relative; width: 260px;">
+                        <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--slate-400); font-size: 0.875rem;"></i>
+                        <input type="text" id="adminBookSearch" placeholder="Search catalog..." style="width: 100%; height: 36px; padding-left: 36px; border-radius: var(--radius-md); border: 1px solid var(--slate-200); background: var(--slate-50); outline: none; font-size: 0.875rem;">
+                    </div>
+                    <button class="btn btn-brand btn-sm" style="padding: 8px 16px; height: 36px;" onclick="qs('#bookFormModal').classList.add('show')"><i class="fas fa-plus"></i> New Asset</button>
+                </div>
+            </header>
 
-    <section id="reports" class="panel reveal">
-      <div class="panel-heading">
-        <p class="eyebrow">Reports</p>
-        <h2>Issued, Returned, Overdue</h2>
-      </div>
-      <div class="reports-grid">
-        <div><h3>Issued</h3><div id="issuedReport" class="report-list"></div></div>
-        <div><h3>Returned</h3><div id="returnedReport" class="report-list"></div></div>
-        <div><h3>Overdue</h3><div id="overdueReport" class="report-list"></div></div>
-      </div>
-    </section>
-  </main>
+            <div class="content-scroll fade-up">
+                <!-- KPI Section (12-Column Grid) -->
+                <div class="grid grid-12 mb-8">
+                    <div class="col-span-3 kpi-card kpi-blue">
+                        <span class="kpi-label">Total Assets</span>
+                        <span class="kpi-value" id="statBooks">0</span>
+                        <i class="fas fa-book" style="position: absolute; bottom: -8px; right: -8px; font-size: 3rem; opacity: 0.1; transform: rotate(-15deg);"></i>
+                    </div>
+                    <div class="col-span-3 kpi-card kpi-purple">
+                        <span class="kpi-label">Active Readers</span>
+                        <span class="kpi-value" id="statStudents">0</span>
+                        <i class="fas fa-users" style="position: absolute; bottom: -8px; right: -8px; font-size: 3rem; opacity: 0.1; transform: rotate(-15deg);"></i>
+                    </div>
+                    <div class="col-span-3 kpi-card kpi-orange">
+                        <span class="kpi-label">Issued Now</span>
+                        <span class="kpi-value" id="statIssued">0</span>
+                        <i class="fas fa-bookmark" style="position: absolute; bottom: -8px; right: -8px; font-size: 3rem; opacity: 0.1; transform: rotate(-15deg);"></i>
+                    </div>
+                    <div class="col-span-3 kpi-card kpi-green">
+                        <span class="kpi-label">Total Revenue</span>
+                        <span class="kpi-value" id="statFine">₹0</span>
+                        <i class="fas fa-indian-rupee-sign" style="position: absolute; bottom: -8px; right: -8px; font-size: 3rem; opacity: 0.1; transform: rotate(-15deg);"></i>
+                    </div>
+                </div>
 
-  <script src="{{ url_for('static', filename='js/app.js') }}?v=3.2"></script>
+                <!-- Main Section -->
+                <div class="grid grid-12 mb-8">
+                    <!-- Quick Actions & Catalog -->
+                    <div class="col-span-8">
+                        <div class="card mb-8" style="background: rgba(255,255,255,0.6); border-style: dashed;">
+                            <h3 class="mb-8" style="font-size: 1rem; color: var(--brand-600);"><i class="fas fa-bolt"></i> Quick Issue Tool</h3>
+                            <form id="issueForm" class="flex gap-4">
+                                <div style="flex: 1;">
+                                    <label class="kpi-label" style="color: var(--slate-600); display: block; margin-bottom: 4px;">Student</label>
+                                    <select id="issueStudent" class="input-field" style="padding-left: 12px;" required></select>
+                                </div>
+                                <div style="flex: 1;">
+                                    <label class="kpi-label" style="color: var(--slate-600); display: block; margin-bottom: 4px;">Book</label>
+                                    <select id="issueBook" class="input-field" style="padding-left: 12px;" required></select>
+                                </div>
+                                <div style="display: flex; align-items: flex-end;">
+                                    <button type="submit" class="btn btn-brand" style="height: 44px; padding: 0 32px;">Issue Now</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div id="inventory">
+                            <div class="flex justify-between align-center mb-8">
+                                <h2 style="font-size: 1.25rem; font-weight: 800;">Catalog Inventory</h2>
+                                <button class="btn btn-white btn-sm" onclick="loadBooks('admin')"><i class="fas fa-sync"></i></button>
+                            </div>
+                            <div id="adminBookGrid" class="grid grid-12">
+                                <!-- Books rendered via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insights Panel -->
+                    <div class="col-span-4">
+                        <div class="table-shell" style="height: 100%;">
+                            <div class="table-header">
+                                <h3 style="font-size: 1rem;">Recent Activity</h3>
+                            </div>
+                            <div style="padding: var(--space-4);">
+                                <div id="overdueReport" class="mb-8"></div>
+                                <hr style="border: none; border-top: 1px solid var(--slate-100); margin-bottom: var(--space-4);">
+                                <div id="issuedReport"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Tables -->
+                <section id="members" class="table-shell mb-8">
+                    <div class="table-header">
+                        <h2 style="font-size: 1.125rem;">Member Management</h2>
+                        <button class="btn btn-white btn-sm" onclick="loadStudents()">Sync Data</button>
+                    </div>
+                    <div id="studentTable"></div>
+                </section>
+
+                <section id="circulation" class="table-shell mb-8">
+                    <div class="table-header">
+                        <h2 style="font-size: 1.125rem;">Circulation History</h2>
+                    </div>
+                    <div id="adminTransactions"></div>
+                </section>
+
+                <section id="requests" class="table-shell" style="border-top: 4px solid var(--brand-600);">
+                    <div class="table-header">
+                        <h2 style="font-size: 1.125rem;">Pending Approvals</h2>
+                    </div>
+                    <div id="adminRequests"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="bookFormModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index:200; align-items:center; justify-content:center;">
+        <div class="glass-card animate-in" style="max-width: 500px; background: #ffffff;">
+            <div class="flex justify-between align-center mb-8">
+                <h2 id="bookFormTitle" style="font-size: 1.5rem;">Add New Asset</h2>
+                <button class="btn btn-white" style="padding: 8px; width: 36px; height: 36px; border-radius: 50%;" onclick="qs('#bookFormModal').classList.remove('show')">&times;</button>
+            </div>
+            <form id="bookForm">
+                <input type="hidden" id="bookId">
+                <div class="input-group">
+                    <i class="fas fa-book input-icon"></i>
+                    <input id="bookTitle" class="input-field" placeholder="Book Title" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-user-pen input-icon"></i>
+                    <input id="bookAuthor" class="input-field" placeholder="Author Name" required>
+                </div>
+                <div class="flex gap-4">
+                    <div class="input-group" style="flex: 1;">
+                        <i class="fas fa-tags input-icon"></i>
+                        <input id="bookCategory" class="input-field" placeholder="Category" required>
+                    </div>
+                    <div class="input-group" style="flex: 1;">
+                        <i class="fas fa-cubes input-icon"></i>
+                        <input type="number" id="bookQuantity" class="input-field" placeholder="Quantity" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-location-dot input-icon"></i>
+                    <input id="bookShelf" class="input-field" placeholder="Shelf Location (e.g. A-102)" required>
+                </div>
+                <button type="submit" class="btn btn-brand w-full" style="height: 52px;">Save Book Record</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=9.0"></script>
+    <script>
+        const m = qs('#bookFormModal');
+        m.classList.add = (c) => { if(c==='show') m.style.display = 'flex'; };
+        m.classList.remove = (c) => { if(c==='show') m.style.display = 'none'; };
+    </script>
 </body>
 </html>

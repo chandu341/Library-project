@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Library Management System | Production SaaS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=9.0">
+</head>
+<body>
+    <div class="bg-canvas">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+    <div class="noise"></div>
+
+    <!-- Sticky Nav -->
+    <nav class="top-bar" style="position: fixed; width: 100%;">
+        <div class="flex align-center gap-2">
+            <div class="brand-logo">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <span class="brand-name">LibraryPro</span>
+        </div>
+        <div class="flex gap-4">
+            <a href="/login" class="btn btn-white btn-sm" style="padding: 10px 20px;">Sign In</a>
+            <a href="/login" class="btn btn-brand btn-sm" style="padding: 10px 20px;">Get Started</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section style="padding: 160px 24px 80px; text-align: center;">
+        <div class="fade-up" style="max-width: 900px; margin: 0 auto;">
+            <div style="display: inline-block; padding: 6px 14px; background: var(--brand-50); color: var(--brand-600); border-radius: 99px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 24px; border: 1px solid var(--brand-100);">✨ Modern Library Operations</div>
+            <h1 class="hero-heading">Intelligent Library <br> <span style="color: var(--brand-500);">Management.</span></h1>
+            <p class="hero-subheading">A high-performance SaaS dashboard designed to modernize book circulation, user tracking, and inventory analytics for modern institutions.</p>
+            <div class="flex gap-4" style="justify-content: center;">
+                <a href="/login" class="btn btn-brand" style="padding: 16px 40px;">Launch Dashboard</a>
+                <a href="/login" class="btn btn-white" style="padding: 16px 40px;">Request Demo</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- KPI Snapshot -->
+    <section style="padding: 40px 24px;">
+        <div class="content-scroll">
+            <div class="grid grid-12">
+                <div class="col-span-3 card" style="text-align: center; padding: var(--space-4);">
+                    <div class="kpi-label mb-2">Total Assets</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: var(--brand-500);">{{ stats.total_books }}</div>
+                </div>
+                <div class="col-span-3 card" style="text-align: center; padding: var(--space-4);">
+                    <div class="kpi-label mb-2">Active Readers</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: var(--brand-500);">{{ stats.total_students }}</div>
+                </div>
+                <div class="col-span-3 card" style="text-align: center; padding: var(--space-4);">
+                    <div class="kpi-label mb-2">Issued Now</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: var(--brand-500);">{{ stats.books_issued }}</div>
+                </div>
+                <div class="col-span-3 card" style="text-align: center; padding: var(--space-4);">
+                    <div class="kpi-label mb-2">System Uptime</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: var(--success);">99.9%</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section style="padding: 80px 24px; background: white;">
+        <div class="content-scroll">
+            <div class="grid grid-12">
+                <div class="col-span-4 p-8">
+                    <div style="width: 48px; height: 48px; background: var(--brand-50); color: var(--brand-500); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 20px;"><i class="fas fa-boxes-stacked"></i></div>
+                    <h3 style="font-size: 1.125rem; margin-bottom: 12px;">Inventory Analytics</h3>
+                    <p style="color: var(--slate-500); font-size: 0.875rem;">Deep insights into your book collection, shelf locations, and availability trends.</p>
+                </div>
+                <div class="col-span-4 p-8">
+                    <div style="width: 48px; height: 48px; background: #fff7ed; color: #f97316; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 20px;"><i class="fas fa-user-check"></i></div>
+                    <h3 style="font-size: 1.125rem; margin-bottom: 12px;">Smart User Portal</h3>
+                    <p style="color: var(--slate-500); font-size: 0.875rem;">A friendly interface for students to browse catalog, request books, and track reading history.</p>
+                </div>
+                <div class="col-span-4 p-8">
+                    <div style="width: 48px; height: 48px; background: #f0fdf4; color: #10b981; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 20px;"><i class="fas fa-repeat"></i></div>
+                    <h3 style="font-size: 1.125rem; margin-bottom: 12px;">Seamless Circulation</h3>
+                    <p style="color: var(--slate-500); font-size: 0.875rem;">Automated issue, return, and fine calculation flows optimized for high-volume libraries.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="padding: 60px 24px; text-align: center; border-top: 1px solid var(--slate-100);">
+        <div class="flex align-center gap-2" style="justify-content: center; margin-bottom: 24px;">
+            <div class="brand-logo" style="width: 24px; height: 24px; border-radius: 6px;">
+                <i class="fas fa-layer-group" style="font-size: 0.75rem;"></i>
+            </div>
+            <span class="brand-name" style="font-size: 1rem;">LibraryPro</span>
+        </div>
+        <p style="color: var(--slate-400); font-size: 0.8125rem;">© 2026 Library Management SaaS. Built for the future of education.</p>
+    </footer>
+
+    <div id="toast-container"></div>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=9.0"></script>
+</body>
+</html>

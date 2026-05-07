@@ -418,17 +418,17 @@ def get_library_stats():
 @app.route("/")
 def index():
     user = current_user()
-    if not user:
-        return redirect(url_for("login_page"))
-    return redirect(url_for("admin_dashboard" if user["role"] == "admin" else "student_dashboard"))
+    if user:
+        return redirect(url_for("admin_dashboard" if user["role"] == "admin" else "student_dashboard"))
+    stats = get_library_stats()
+    return render_template("landing.html", stats=stats)
 
 
 @app.route("/login", methods=["GET"])
 def login_page():
     if current_user():
         return redirect(url_for("index"))
-    stats = get_library_stats()
-    return render_template("login.html", stats=stats)
+    return render_template("login.html")
 
 
 @app.route("/login", methods=["POST"])

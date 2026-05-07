@@ -1,1108 +1,623 @@
-const DEFAULT_COVER = "https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=900&q=80";
+/**
+ * Library Management System - Frontend UI Logic
+ * Modern SaaS Dashboard Version
+ */
 
-const qs = (selector) => document.querySelector(selector);
-const qsa = (selector) => [...document.querySelectorAll(selector)];
+const qs = (sel) => document.querySelector(sel);
+const qsa = (sel) => [...document.querySelectorAll(sel)];
+
+// UI Utilities
+function showToast(message, type = "success") {
+    const container = qs("#toast-container");
+    if (!container) return;
+    const toast = document.createElement("div");
+    toast.className = `toast ${type} animate-fade-in`;
+    const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+    toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateX(100%)";
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+function updateSidebarActive(id) {
+    qsa(".nav-item").forEach(item => {
+        const href = item.getAttribute("href");
+        if (href && href.startsWith("#")) {
+            item.classList.toggle("active", href === `#${id}`);
+        }
+    });
+    const pageTitle = qs(".page-title");
+    if (pageTitle) {
+        const activeItem = qs(`.nav-item[href="#${id}"]`);
+        if (activeItem) pageTitle.textContent = activeItem.textContent.trim();
+    }
+}
 
 function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
-async function api(path, options = {}) {
-  const response = await fetch(path, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-    ...options,
-  });
-  const data = await response.json().catch(() => ({ success: false, message: "Invalid server response." }));
-  if (!response.ok || !data.success) {
-    throw new Error(data.message || "Request failed.");
-  }
-  return data;
-}
-
-function setMessage(element, message, isError = false) {
-  if (!element) return;
-  element.textContent = message;
-  element.classList.toggle("error", isError);
-}
-
-function debounce(fn, delay = 250) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
-  };
-}
-
-function initRevealDelays() {
-  qsa(".reveal-card").forEach((item, index) => {
-    item.style.setProperty("--reveal-delay", `${Math.min(index % 5, 4) * 90}ms`);
-  });
-}
-
-function initReveals() {
-  const items = qsa(".reveal");
-  if (!items.length) return;
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.add("visible");
-      observer.unobserve(entry.target);
+// API Wrapper
+async function api(url, options = {}) {
+    const res = await fetch(url, {
+        ...options,
+        headers: { "Content-Type": "application/json", ...options.headers },
     });
-  }, { threshold: 0.12 });
-
-  items.forEach((item) => observer.observe(item));
-}
-
-function initMenu() {
-  const toggle = qs("[data-menu-toggle]");
-  const links = qs("[data-nav-links]");
-  if (!toggle || !links) return;
-
-  toggle.addEventListener("click", () => links.classList.toggle("open"));
-  qsa("[data-nav-links] a").forEach((link) => {
-    link.addEventListener("click", () => links.classList.remove("open"));
-  });
-}
-
-function initNavbarState() {
-  const navbar = qs(".navbar");
-  if (!navbar) return;
-
-  const sync = () => {
-    navbar.classList.toggle("scrolled", window.scrollY > 12);
-    
-    // Highlight active nav link
-    const sections = qsa("section[id]");
-    let current = "";
-    sections.forEach((section) => {
-      const sectionTop = section.offsetTop;
-      if (window.scrollY >= sectionTop - 120) {
-        current = section.getAttribute("id");
-      }
-    });
-
-    qsa(".nav-links a").forEach((a) => {
-      a.classList.toggle("active", a.getAttribute("href") === `#${current}`);
-    });
-  };
-  
-  sync();
-  window.addEventListener("scroll", sync, { passive: true });
-}
-
-function animateCounter(element, value) {
-  if (!element) return;
-  const target = Number(value || 0);
-  const duration = 700;
-  const start = performance.now();
-
-  const tick = (now) => {
-    const progress = Math.min((now - start) / duration, 1);
-    element.textContent = Math.floor(target * progress);
-    if (progress < 1) requestAnimationFrame(tick);
-  };
-
-  requestAnimationFrame(tick);
-}
-
-function initLandingStats() {
-  qsa("[data-landing-counter]").forEach((el) => {
-    animateCounter(el, el.dataset.landingCounter);
-  });
-
-  qsa("[data-percent]").forEach((el) => {
-    setTimeout(() => {
-      el.style.width = el.dataset.percent + "%";
-    }, 400);
-  });
-}
-
-function initLogin() {
-  const form = qs("#loginForm");
-  if (!form) return;
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const message = qs("#loginMessage");
-    setMessage(message, "Checking details...");
-
-    try {
-      const data = await api("/login", {
-        method: "POST",
-        body: JSON.stringify({
-          role: qs("#role").value,
-          username: qs("#username").value,
-          password: qs("#password").value,
-        }),
-      });
-      setMessage(message, data.message);
-      window.location.href = data.redirect;
-    } catch (error) {
-      setMessage(message, error.message, true);
+    const data = await res.json();
+    if (!res.ok || data.status === "error") {
+        const errorMsg = data.message || "An unexpected error occurred.";
+        showToast(errorMsg, "error");
+        throw new Error(errorMsg);
     }
-  });
+    return data;
 }
 
-function togglePasswordButton(button, input) {
-  if (!button || !input) return;
-
-  button.addEventListener("click", () => {
-    const isHidden = input.type === "password";
-    input.type = isHidden ? "text" : "password";
-    button.textContent = isHidden ? "Hide" : "Show";
-  });
+function setMessage(el, text, isError = false) {
+    if (!el) return;
+    el.textContent = text;
+    el.className = `form-message ${isError ? "error" : "success"} animate-fade-in`;
 }
 
-function initHomepageLoginReveal() {
-  const panel = qs("#login-card");
-  const shell = qs("#loginFormShell");
-  const resetShell = qs("#forgotPasswordShell");
-  const roleInput = qs("#role");
-  const resetRoleInput = qs("#resetRole");
-  const selectedRoleLabel = qs("#selectedRoleLabel");
-  const resetRoleLabel = qs("#resetRoleLabel");
-  const submitLogin = qs("#submitLogin");
-  const username = qs("#username");
-  const roleButtons = qs("#roleButtons");
-  const changeRole = qs("#changeRole");
-  const forgotPasswordLink = qs("#forgotPasswordLink");
-  const backToLogin = qs("#backToLogin");
-  const togglePassword = qs("#togglePassword");
-  const toggleNewPassword = qs("#toggleNewPassword");
-  const password = qs("#password");
-  const newPassword = qs("#newPassword");
-  const triggers = qsa("[data-login-role]");
-
-  if (!panel || !shell || !roleInput) return;
-
-  const roleTitle = (role) => (role === "student" ? "Student Login" : "Admin Login");
-  const resetTitle = (role) => (role === "student" ? "Student Password Reset" : "Admin Password Reset");
-  const selectedRole = () => roleInput.value || "admin";
-
-  const clearLoginFields = () => {
-    if (username) username.value = "";
-    if (password) password.value = "";
-  };
-
-  const openLogin = (event, forcedRole) => {
-    if (event) event.preventDefault();
-    const role = forcedRole || event?.currentTarget?.dataset.loginRole || "admin";
-    clearLoginFields();
-    roleInput.value = role;
-    if (resetRoleInput) resetRoleInput.value = role;
-    if (selectedRoleLabel) selectedRoleLabel.textContent = roleTitle(role);
-    if (resetRoleLabel) resetRoleLabel.textContent = resetTitle(role);
-    if (submitLogin) submitLogin.textContent = roleTitle(role);
-    if (roleButtons) roleButtons.hidden = true;
-    shell.hidden = false;
-    if (resetShell) resetShell.hidden = true;
-    panel.classList.add("form-open");
-    panel.scrollIntoView({ behavior: "smooth", block: "center" });
-    setTimeout(() => qs("#username")?.focus(), 260);
-
-    // Toggle forgot links: Hide for students, Show for admins
-    const forgotLinks = qs("#forgotLinks");
-    if (forgotLinks) {
-      forgotLinks.style.display = (role === "student") ? "none" : "flex";
-    }
-  };
-
-  triggers.forEach((trigger) => {
-    trigger.addEventListener("click", (event) => openLogin(event, trigger.dataset.loginRole));
-  });
-
-  if (changeRole) {
-    changeRole.addEventListener("click", () => {
-      shell.hidden = true;
-      if (resetShell) resetShell.hidden = true;
-      if (roleButtons) roleButtons.hidden = false;
-      panel.classList.remove("form-open");
-      setMessage(qs("#loginMessage"), "");
-    });
-  }
-
-  if (forgotPasswordLink && resetShell) {
-    forgotPasswordLink.addEventListener("click", () => {
-      const role = selectedRole();
-      if (resetRoleInput) resetRoleInput.value = role;
-      if (resetRoleLabel) resetRoleLabel.textContent = resetTitle(role);
-      shell.hidden = true;
-      resetShell.hidden = false;
-      qs("#forgotPasswordForm").hidden = false;
-      qs("#verifyOtpForm").hidden = true;
-      qs("#resetPasswordForm").hidden = true;
-      if (qs("#resetIdentifier")) qs("#resetIdentifier").value = "";
-      setMessage(qs("#forgotMessage"), "");
-      setTimeout(() => qs("#resetIdentifier")?.focus(), 180);
-    });
-  }
-
-
-
-  if (backToLogin && resetShell) {
-    backToLogin.addEventListener("click", () => {
-      resetShell.hidden = true;
-      shell.hidden = false;
-    });
-  }
-
-
-
-  togglePasswordButton(togglePassword, password);
-  togglePasswordButton(toggleNewPassword, newPassword);
-}
-
-function initForgotPassword() {
-  const forgotForm = qs("#forgotPasswordForm");
-  const verifyForm = qs("#verifyOtpForm");
-  const resetForm = qs("#resetPasswordForm");
-  
-  if (!forgotForm || !verifyForm || !resetForm) return;
-
-  let currentCode = "";
-
-
-
-  forgotForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const message = qs("#forgotMessage");
-    setMessage(message, "Sending email code...");
-
-    try {
-      const data = await api("/forgot-password", {
-        method: "POST",
-        body: JSON.stringify({
-          role: qs("#resetRole").value,
-          identifier: qs("#resetIdentifier").value,
-        }),
-      });
-      setMessage(message, data.message);
-      forgotForm.hidden = true;
-      verifyForm.hidden = false;
-      setTimeout(() => qs("#verifyCode")?.focus(), 180);
-    } catch (error) {
-      setMessage(message, error.message, true);
-    }
-  });
-
-  verifyForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const message = qs("#verifyMessage");
-    setMessage(message, "Verifying code...");
-    const code = qs("#verifyCode").value;
-
-    try {
-      const data = await api("/verify-otp", {
-        method: "POST",
-        body: JSON.stringify({
-          role: qs("#resetRole").value,
-          identifier: qs("#resetIdentifier").value,
-          code: code,
-        }),
-      });
-      setMessage(message, data.message);
-      currentCode = code;
-      verifyForm.hidden = true;
-      resetForm.hidden = false;
-      setTimeout(() => qs("#newPassword")?.focus(), 180);
-    } catch (error) {
-      setMessage(message, error.message, true);
-    }
-  });
-
-  resetForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const message = qs("#resetMessage");
-    const pass = qs("#newPassword").value;
-    const confirm = qs("#confirmPassword").value;
-
-    if (pass !== confirm) {
-      return setMessage(message, "Passwords do not match.", true);
-    }
-
-    setMessage(message, "Updating password...");
-
-    try {
-      const data = await api("/reset-password", {
-        method: "POST",
-        body: JSON.stringify({
-          role: qs("#resetRole").value,
-          identifier: qs("#resetIdentifier").value,
-          code: currentCode,
-          new_password: pass,
-          confirm_password: confirm
-        }),
-      });
-      setMessage(message, data.message);
-      resetForm.reset();
-      setTimeout(() => {
-        qs("#backToLogin")?.click();
-      }, 2000);
-    } catch (error) {
-      setMessage(message, error.message, true);
-    }
-  });
-
-  if (toggleConfirmPassword && confirmPassword) {
-    togglePasswordButton(toggleConfirmPassword, confirmPassword);
-  }
-}
-
+// Component Renderers
 function bookCard(book, page) {
-  const isAvailable = Number(book.available_quantity) > 0;
-  let actionButtons = "";
-  if (page === "admin") {
-    actionButtons = `<button class="btn ghost" data-edit-book="${book.id}">Edit</button>
-                     <button class="btn danger" data-delete-book="${book.id}">Delete</button>`;
-  } else {
-    if (book.is_issued) {
-      actionButtons = `<button class="btn ghost" disabled>Already Issued</button>`;
-    } else if (book.request_status === 'pending') {
-      actionButtons = `<button class="btn ghost" disabled>Requested</button>`;
-    } else if (book.request_status === 'rejected') {
-      actionButtons = `<button class="btn danger-ghost" data-rejection-reason="${escapeHtml(book.rejection_reason || 'Out of stock')}" style="color: #ef4444; border-color: #ef4444; width: 100%;">Rejected</button>`;
-    } else {
-      actionButtons = `<button class="btn primary" data-request-book="${book.id}" ${isAvailable ? "" : "disabled"}>Request Book</button>`;
-    }
-  }
-
-  return `
-    <article class="book-card reveal visible">
-      <div class="book-cover">
-        <span class="book-cover-title">${escapeHtml(book.title)}</span>
-      </div>
-      <div class="book-body">
-        <h3>${escapeHtml(book.title)}</h3>
-        <div class="book-meta">
-          <div>${escapeHtml(book.author)}</div>
-          <div>${escapeHtml(book.category)} - Shelf ${escapeHtml(book.shelf)}</div>
-          <div>${escapeHtml(book.available_quantity)}/${escapeHtml(book.total_quantity)} available</div>
-        </div>
-        <span class="status-pill ${isAvailable ? "" : "empty"}">${isAvailable ? "Available" : "Unavailable"}</span>
-        <div class="card-actions">${actionButtons}</div>
-      </div>
-    </article>`;
-}
-
-function reportItem(primary, secondary) {
-  return `<div class="report-item"><strong>${escapeHtml(primary)}</strong><span>${escapeHtml(secondary)}</span></div>`;
-}
-
-function emptyState(label) {
-  return `<div class="report-item"><span>${escapeHtml(label)}</span></div>`;
-}
-
-async function loadBooks(page) {
-  const grid = qs("#adminBookGrid") || qs("#bookGrid");
-  if (!grid) return [];
-
-  const searchEl = qs("#adminBookSearch") || qs("#bookSearch");
-  const query = searchEl?.value || "";
-  const data = await api(`/books?q=${encodeURIComponent(query)}`);
-  
-  if (page === "student") {
-    // Show all books in the catalog except those I already have issued
-    const catalogBooks = data.books.filter(b => !b.is_issued);
+    const isAvailable = Number(book.available_quantity) > 0;
+    let actionButtons = "";
     
-    qs("#bookGrid").innerHTML = catalogBooks.length 
-      ? catalogBooks.map(b => bookCard(b, page)).join("") 
-      : emptyState("No books found in the library.");
-  } else {
-    grid.innerHTML = data.books.length ? data.books.map((book) => bookCard(book, page)).join("") : emptyState("No books found.");
-  }
+    if (page === "admin") {
+        actionButtons = `
+            <div class="flex gap-2">
+                <button class="btn btn-white btn-sm" data-edit-book="${book.id}" style="flex: 1; padding: 6px 12px; font-size: 0.75rem;"><i class="fas fa-edit"></i> Edit</button>
+                <button class="btn btn-danger btn-sm" data-delete-book="${book.id}" style="padding: 6px 10px; font-size: 0.75rem;"><i class="fas fa-trash"></i></button>
+            </div>`;
+    } else {
+        if (book.is_issued) {
+            actionButtons = `<button class="btn btn-white btn-sm w-full" disabled style="font-size: 0.75rem;"><i class="fas fa-check"></i> Already Issued</button>`;
+        } else if (book.request_status === 'pending') {
+            actionButtons = `<button class="btn btn-white btn-sm w-full" disabled style="font-size: 0.75rem;"><i class="fas fa-clock"></i> Requested</button>`;
+        } else if (book.request_status === 'rejected') {
+            actionButtons = `<button class="btn btn-danger btn-sm w-full" data-rejection-reason="${escapeHtml(book.rejection_reason)}" style="font-size: 0.75rem;"><i class="fas fa-times-circle"></i> Rejected</button>`;
+        } else {
+            actionButtons = `<button class="btn btn-brand btn-sm w-full" data-request-book="${book.id}" ${isAvailable ? "" : "disabled"} style="font-size: 0.75rem;">
+                <i class="fas fa-plus"></i> ${isAvailable ? "Request Book" : "Out of Stock"}
+            </button>`;
+        }
+    }
 
-  if (qs("#studentTotalBooks")) {
-    // Student total books is handled by loadStudentStats for accuracy
-  }
-  if (qs("#statBooks")) {
-    // Admin total books is handled by loadReports for accuracy (stock total)
-  }
-  populateIssueBooks(data.books);
-  wireBookActions(data.books, page);
-  return data.books;
+    return `
+        <article class="card flex flex-column gap-3 fade-up" style="animation-delay: ${Math.random() * 0.2}s">
+            <div class="flex justify-between align-center">
+                <div class="badge" style="background: var(--slate-100); color: var(--slate-600); font-size: 0.65rem;">${escapeHtml(book.category).toUpperCase()}</div>
+                <div class="badge ${isAvailable ? 'badge-success' : 'badge-danger'}" style="font-size: 0.65rem;">${isAvailable ? 'Available' : 'Issued'}</div>
+            </div>
+            <div style="flex: 1;">
+                <h3 title="${escapeHtml(book.title)}" style="font-size: 0.9375rem; font-weight: 700; margin-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 2.8em; line-height: 1.4; color: var(--slate-900);">${escapeHtml(book.title)}</h3>
+                <p style="color: var(--slate-500); font-size: 0.75rem; font-weight: 500;"><i class="fas fa-pen-nib" style="font-size: 0.7rem; opacity: 0.7;"></i> ${escapeHtml(book.author)}</p>
+            </div>
+            <div class="flex justify-between align-center" style="border-top: 1px solid var(--slate-100); padding-top: 12px; margin-top: 4px;">
+                <span style="color: var(--slate-400); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em;"><i class="fas fa-location-dot"></i> ${escapeHtml(book.shelf)}</span>
+                <span style="color: var(--slate-400); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em;"><i class="fas fa-cubes"></i> QTY: ${book.available_quantity}</span>
+            </div>
+            <div style="margin-top: auto;">
+                ${actionButtons}
+            </div>
+        </article>`;
+}
+
+function renderTable(headers, rows, emptyMsg = "No records found.") {
+    if (!rows.length) return `<div class="empty-state"><i class="fas fa-folder-open"></i><p>${emptyMsg}</p></div>`;
+    
+    return `
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>
+                </thead>
+                <tbody>
+                    ${rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("")}
+                </tbody>
+            </table>
+        </div>`;
+}
+
+// Data Loading
+async function loadBooks(page) {
+    const grid = qs("#adminBookGrid") || qs("#bookGrid");
+    if (!grid) return;
+
+    const searchEl = qs("#adminBookSearch") || qs("#bookSearch");
+    const query = searchEl?.value || "";
+    const data = await api(`/books?q=${encodeURIComponent(query)}`);
+    
+    let booksToShow = data.books;
+    if (page === "student") {
+        booksToShow = data.books.filter(b => !b.is_issued);
+    }
+
+    grid.innerHTML = booksToShow.length 
+        ? booksToShow.map(b => bookCard(b, page)).join("") 
+        : `<div class="empty-state"><i class="fas fa-search"></i><p>No books found matching "${query}"</p></div>`;
+
+    populateIssueBooks(data.books);
+    wireBookActions(data.books, page);
 }
 
 function populateIssueBooks(books) {
-  const select = qs("#issueBook");
-  if (!select) return;
+    const select = qs("#issueStudent") && qs("#issueBook"); // check if on admin page
+    if (!select) return;
 
-  const availableBooks = books.filter((book) => Number(book.available_quantity) > 0);
-  select.innerHTML = availableBooks.map((book) => `<option value="${book.id}">${escapeHtml(book.title)}</option>`).join("");
+    const availableBooks = books.filter((book) => Number(book.available_quantity) > 0);
+    qs("#issueBook").innerHTML = availableBooks.map((book) => 
+        `<option value="${book.id}">${escapeHtml(book.title)}</option>`
+    ).join("");
 }
 
 async function loadStudents() {
-  const select = qs("#issueStudent");
-  const list = qs("#studentTable");
-  if (!select && !list) return;
+    const list = qs("#studentTable");
+    if (!list) return;
 
-  const data = await api("/students");
-  if (select) {
-    select.innerHTML = data.students.length
-      ? data.students.map((student) => `<option value="${student.id}">${escapeHtml(student.name)}</option>`).join("")
-      : `<option value="">No students found</option>`;
-  }
-  if (list) {
-    list.innerHTML = studentTable(data.students);
-  }
-  if (qs("#statStudents")) animateCounter(qs("#statStudents"), data.students.length);
-}
+    const data = await api("/students");
+    
+    const headers = ["Name", "Username", "Email", "Access/Actions"];
+    const rows = data.students.map(s => [
+        `<strong>${escapeHtml(s.name)}</strong>`,
+        escapeHtml(s.username),
+        escapeHtml(s.email),
+        `<div class="d-flex gap-2">
+            <span class="text-muted" style="font-family: monospace;">${s.raw_password ? '••••••••' : '—'}</span>
+            <button class="icon-btn btn-sm" data-view-password="${s.id}" data-raw="${escapeHtml(s.raw_password)}"><i class="fas fa-eye"></i></button>
+            <button class="icon-btn btn-sm" data-delete-student="${s.id}" style="color: var(--danger);"><i class="fas fa-trash"></i></button>
+        </div>`
+    ]);
 
-function studentTable(students) {
-  if (!students.length) return emptyState("No student accounts yet.");
-
-  return `
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Username</th>
-          <th>Email</th>
-          <th>Password</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${students.map((student) => `
-          <tr>
-            <td>${escapeHtml(student.name)}</td>
-            <td>${escapeHtml(student.username)}</td>
-            <td>${escapeHtml(student.email)}</td>
-            <td>
-              <div class="password-cell">
-                <span class="masked-pass" id="pass-${student.id}" data-hidden="true">${student.raw_password ? "••••••••" : "—"}</span>
-                <button class="eye-btn" data-view-password="${student.id}" data-raw="${escapeHtml(student.raw_password || "")}" title="Toggle Visibility">👁️</button>
-                <button class="eye-btn" data-reset-password="${student.id}" title="Update Password" style="margin-left: 0.25rem; font-size: 1rem; opacity: 0.7;">✏️</button>
-                <button class="eye-btn" data-delete-student="${student.id}" title="Delete Student" style="margin-left: 0.25rem; font-size: 1rem; opacity: 0.7; color: var(--danger);">🗑️</button>
-              </div>
-            </td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>`;
-}
-
-function wireBookActions(books, page) {
-  if (page === "admin") {
-    qsa("[data-edit-book]").forEach((button) => {
-      button.addEventListener("click", () => {
-        const book = books.find((item) => item.id === Number(button.dataset.editBook));
-        if (!book) return;
-
-        qs("#bookFormTitle").textContent = "Edit Book";
-        qs("#bookId").value = book.id;
-        qs("#bookTitle").value = book.title;
-        qs("#bookAuthor").value = book.author;
-        qs("#bookCategory").value = book.category;
-        qs("#bookQuantity").value = book.total_quantity;
-        qs("#bookShelf").value = book.shelf;
-        qs("#bookForm").scrollIntoView({ behavior: "smooth", block: "center" });
-      });
-    });
-
-    qsa("[data-delete-book]").forEach((button) => {
-      button.addEventListener("click", async () => {
-        if (!confirm("Delete this book?")) return;
-        try {
-          await api(`/books/${button.dataset.deleteBook}`, { method: "DELETE" });
-          await refreshAdmin();
-        } catch (error) {
-          alert(error.message);
-        }
-      });
-    });
-  }
-
-  if (page === "student") {
-    qsa("[data-request-book]").forEach((button) => {
-      button.addEventListener("click", async () => {
-        const originalText = button.textContent;
-        try {
-          button.disabled = true;
-          button.textContent = "Processing...";
-          
-          const result = await api("/request-book", {
-            method: "POST",
-            body: JSON.stringify({ book_id: Number(button.dataset.requestBook) }),
-          });
-          
-          if (result.success) {
-            button.textContent = "Requested";
-            button.className = "btn ghost full";
-            alert(result.message);
-            await refreshStudent(); // Sync entire UI
-          } else {
-            button.disabled = false;
-            button.textContent = originalText;
-            alert(result.message);
-          }
-        } catch (error) {
-          button.disabled = false;
-          button.textContent = originalText;
-          alert(error.message);
-        }
-      });
-    });
-
-    qsa("[data-rejection-reason]").forEach((button) => {
-      button.addEventListener("click", () => {
-        alert(`Rejection Reason: ${button.dataset.rejectionReason}`);
-      });
-    });
-
-    qsa("[data-dismiss-request]").forEach((button) => {
-      button.addEventListener("click", async () => {
-        if (!confirm("Dismiss this rejected request? You will be able to request this book again.")) return;
-        try {
-          const res = await api(`/api/student/requests/${button.dataset.dismissRequest}/dismiss`, { method: "POST" });
-          alert(res.message);
-          await refreshStudent();
-        } catch (err) { alert(err.message); }
-      });
-    });
-  }
-}
-
-function transactionTable(transactions, includeStudent = true) {
-  if (!transactions.length) return emptyState("No active records.");
-
-  return `
-    <table>
-      <thead>
-        <tr>
-          <th>Book</th>
-          ${includeStudent ? "<th>Student</th>" : ""}
-          <th>Issue Time</th>
-          <th>Due Time</th>
-          <th>Return Time</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${transactions.map((item) => {
-          const isReturned = item.status === 'returned';
-          const isOverdue = item.status === 'overdue';
-          const statusClass = isReturned ? 'success' : (isOverdue ? 'danger' : 'primary');
-          
-          return `
-          <tr>
-            <td>${escapeHtml(item.book_title)}</td>
-            ${includeStudent ? `<td>${escapeHtml(item.student_name)}</td>` : ""}
-            <td>${escapeHtml(item.issue_date)}</td>
-            <td>${escapeHtml(item.due_date)}</td>
-            <td>${escapeHtml(item.return_date || "—")}</td>
-            <td><span class="status-pill ${statusClass}">${escapeHtml(item.status.toUpperCase())}</span></td>
-            <td>
-              ${!isReturned ? `<button class="btn ghost" data-return="${item.id}">Return</button>` : `<span class="muted">Completed</span>`}
-            </td>
-          </tr>`;
-        }).join("")}
-      </tbody>
-    </table>`;
+    list.innerHTML = renderTable(headers, rows, "No students found.");
+    
+    // Populate issue dropdown if it exists
+    const issueSelect = qs("#issueStudent");
+    if (issueSelect) {
+        issueSelect.innerHTML = data.students.map(s => 
+            `<option value="${s.id}">${escapeHtml(s.name)}</option>`
+        ).join("");
+    }
 }
 
 async function loadTransactions(page) {
-  const target = page === "admin" ? qs("#adminTransactions") : qs("#studentTransactions");
-  if (!target) return [];
+    const target = page === "admin" ? qs("#adminTransactions") : qs("#studentTransactions");
+    if (!target) return;
 
-  const data = await api("/transactions");
-  // Students see all their transactions (issued, overdue, returned) so they can see return time
-  const transactions = data.transactions;
-    
-  target.innerHTML = transactionTable(transactions, page === "admin");
+    const data = await api("/transactions");
+    const ts = data.transactions;
 
-  wireReturnActions(page);
-}
-
-function wireReturnActions(page) {
-  qsa("[data-return]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      try {
-        const result = await api("/return", {
-          method: "POST",
-          body: JSON.stringify({ transaction_id: Number(button.dataset.return) }),
-        });
-        alert(`Returned successfully. Fine: ₹${result.fine}`);
-        if (page === "admin") {
-          await refreshAdmin();
-        } else {
-          await refreshStudent();
-        }
-      } catch (error) {
-        alert(error.message);
-      }
-    });
-  });
+    if (page === "admin") {
+        const headers = ["Book", "Student", "Issue Date", "Due Date", "Status", "Fine", "Action"];
+        const rows = ts.map(t => [
+            `<strong>${escapeHtml(t.book_title)}</strong>`,
+            escapeHtml(t.student_name),
+            t.issue_date,
+            t.due_date,
+            `<span class="badge ${t.status === 'issued' ? 'badge-warning' : 'badge-success'}">${t.status}</span>`,
+            `<span class="${Number(t.fine_amount) > 0 ? 'text-danger font-bold' : ''}">₹${t.fine_amount}</span>`,
+            t.status === 'issued' 
+                ? `<button class="btn btn-secondary btn-sm" data-return="${t.id}">Return</button>` 
+                : '<i class="fas fa-check-circle text-success"></i>'
+        ]);
+        target.innerHTML = renderTable(headers, rows);
+    } else {
+        const headers = ["Book", "Author", "Due Date", "Status", "Fine"];
+        const rows = ts.map(t => [
+            `<strong>${escapeHtml(t.book_title)}</strong>`,
+            escapeHtml(t.author),
+            t.due_date,
+            `<span class="badge ${t.status === 'issued' ? 'badge-warning' : 'badge-success'}">${t.status}</span>`,
+            `₹${t.fine_amount}`
+        ]);
+        target.innerHTML = renderTable(headers, rows);
+    }
+    wireTransactionActions(page);
 }
 
 async function loadReports() {
-  if (!qs("#issuedReport")) return;
+    const issuedReport = qs("#issuedReport");
+    if (!issuedReport) return;
 
-  const data = await api("/reports");
-  const stats = data.stats;
+    const data = await api("/reports");
+    const stats = data.stats;
 
-  const issuedEl = qs("#statIssued");
-  const booksEl = qs("#statBooks");
-  const availableEl = qs("#statAvailable");
-  const subjectsEl = qs("#statSubjects");
-  
-  if (issuedEl) animateCounter(issuedEl, stats.issued_count || 0);
-  if (booksEl) animateCounter(booksEl, stats.total_books || 0);
-  if (availableEl) animateCounter(availableEl, stats.available_books || 0);
-  if (subjectsEl) animateCounter(subjectsEl, stats.total_subjects || 0);
-  
-  const fineEl = qs("#statFine");
-  if (fineEl) fineEl.textContent = `₹${Number(stats.fine_total || 0)}`;
+    // Update KPI counters
+    const updateCounter = (id, val) => {
+        const el = qs(id);
+        if (el) el.textContent = val;
+    };
 
-  qs("#issuedReport").innerHTML = data.issued.length
-    ? data.issued.map((item) => reportItem(item.book_title, `${item.student_name} - Due ${item.due_date}`)).join("")
-    : emptyState("No active issues.");
-  qs("#returnedReport").innerHTML = data.returned.length
-    ? data.returned.map((item) => reportItem(item.book_title, `${item.student_name} - Fine ₹${item.fine_amount}`)).join("")
-    : emptyState("No returned books.");
-  qs("#overdueReport").innerHTML = data.overdue.length
-    ? data.overdue.map((item) => reportItem(item.book_title, `${item.student_name} - Fine ₹${item.current_fine}`)).join("")
-    : emptyState("No overdue books.");
+    updateCounter("#statBooks", stats.total_books);
+    updateCounter("#statAvailable", stats.available_books);
+    updateCounter("#statIssued", stats.issued_count);
+    updateCounter("#statOverdue", stats.overdue_count);
+    updateCounter("#statFine", `₹${stats.fine_total}`);
+
+    const renderActivity = (list, target, empty, color = "var(--primary)") => {
+        target.innerHTML = list.length 
+            ? list.map(i => `
+                <div class="insight-item mb-4">
+                    <div class="insight-dot" style="background-color: ${color};"></div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 2px;">${escapeHtml(i.book_title)}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(i.student_name)}</div>
+                        <div style="font-size: 0.65rem; color: ${color}; font-weight: 800; margin-top: 4px;">DUE ${i.due_date}</div>
+                    </div>
+                </div>`).join("")
+            : `<div class="p-4 text-center text-muted text-xs">${empty}</div>`;
+    };
+
+    renderActivity(data.overdue, qs("#overdueReport"), "No overdue items.", "var(--danger)");
+    renderActivity(data.issued, issuedReport, "No active issues.", "var(--primary)");
 }
 
 async function loadRequests() {
-  const target = qs("#adminRequests");
-  if (!target) return;
+    const target = qs("#adminRequests");
+    if (!target) return;
 
-  try {
     const data = await api("/admin/requests");
-    target.innerHTML = requestTable(data.requests);
+    const reqs = data.requests;
+
+    const headers = ["Student", "Book", "Time", "Action"];
+    const rows = reqs.map(r => [
+        escapeHtml(r.student_name),
+        `<strong>${escapeHtml(r.book_title)}</strong>`,
+        r.request_time,
+        `<div class="d-flex gap-2">
+            <button class="btn btn-primary btn-sm" data-approve="${r.id}">Approve</button>
+            <button class="btn btn-danger btn-sm" data-reject="${r.id}">Reject</button>
+        </div>`
+    ]);
+
+    target.innerHTML = renderTable(headers, rows, "No pending requests.");
     
-    const count = data.requests.length;
-    const title = qs("#requests-section h2");
-    if (title) {
-      title.innerHTML = `Book Requests ${count > 0 ? `<span class="badge danger animate-pulse">${count}</span>` : ""}`;
+    // Update notification bell
+    const badge = qs("#bellBadge");
+    if (badge) {
+        badge.textContent = reqs.length;
+        badge.style.display = reqs.length > 0 ? "inline-flex" : "none";
     }
 
-    const bellBadge = qs("#bellBadge");
     const notifList = qs("#notificationList");
-    if (bellBadge && notifList) {
-      bellBadge.textContent = count;
-      bellBadge.style.display = count > 0 ? "inline-block" : "none";
-      if (count > 0) {
-        notifList.innerHTML = data.requests.map(r => `<div><strong>${escapeHtml(r.student_name)}</strong> requested <em>${escapeHtml(r.book_title)}</em></div>`).join("");
-      } else {
-        notifList.innerHTML = "<div>No new requests</div>";
-      }
+    if (notifList) {
+        notifList.innerHTML = reqs.length 
+            ? reqs.map(r => `<div class="mb-2"><strong>${escapeHtml(r.student_name)}</strong> requested <em>${escapeHtml(r.book_title)}</em></div>`).join("")
+            : "No new requests";
     }
-
     wireRequestActions();
-  } catch (error) {
-    target.innerHTML = emptyState(error.message);
-  }
-}
-
-function requestTable(requests) {
-  if (!requests.length) return emptyState("No pending requests.");
-
-  return `
-    <table>
-      <thead>
-        <tr>
-          <th>Student</th>
-          <th>Book</th>
-          <th>Requested At</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${requests.map((req) => `
-          <tr>
-            <td>${escapeHtml(req.student_name)}</td>
-            <td>${escapeHtml(req.book_title)}</td>
-            <td>${escapeHtml(req.request_time)}</td>
-            <td>
-              <div class="card-actions">
-                ${req.status === 'pending' ? `
-                  <button class="btn primary" data-approve="${req.id}">Approve</button>
-                  <button class="btn danger" data-reject="${req.id}">Reject</button>
-                ` : `
-                  <span class="status-pill ${req.status}">${req.status.toUpperCase()}</span>
-                  <button class="btn ghost btn-sm" data-reset="${req.id}" title="Allow student to re-request">Reset</button>
-                `}
-              </div>
-            </td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>`;
-}
-
-function wireRequestActions() {
-  qsa("[data-approve]").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      try {
-        const res = await api("/approve-request", {
-          method: "POST",
-          body: JSON.stringify({ request_id: Number(btn.dataset.approve) })
-        });
-        alert(res.message);
-        await refreshAdmin();
-      } catch (err) { alert(err.message); }
-    });
-  });
-  
-  qsa("[data-reject]").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const reason = prompt("Enter rejection reason:", "Out of stock");
-      if (reason === null) return; // User cancelled
-      try {
-        const res = await api("/reject-request", {
-          method: "POST",
-          body: JSON.stringify({ 
-            request_id: Number(btn.dataset.reject),
-            reason: reason
-          })
-        });
-        alert(res.message);
-        await refreshAdmin();
-      } catch (err) { alert(err.message); }
-    });
-  });
-
-  qsa("[data-reset]").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      if (!confirm("Reset this rejected request? Student will be able to request this book again.")) return;
-      try {
-        const res = await api(`/api/admin/requests/${btn.dataset.reset}/reset`, {
-          method: "POST"
-        });
-        alert(res.message);
-        await refreshAdmin();
-      } catch (err) { alert(err.message); }
-    });
-  });
-}
-
-function initBookForm() {
-  const form = qs("#bookForm");
-  if (!form) return;
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const id = qs("#bookId").value;
-    const payload = {
-      title: qs("#bookTitle").value,
-      author: qs("#bookAuthor").value,
-      category: qs("#bookCategory").value,
-      total_quantity: Number(qs("#bookQuantity").value),
-      shelf: qs("#bookShelf").value,
-    };
-
-    try {
-      await api(id ? `/books/${id}` : "/books", {
-        method: id ? "PUT" : "POST",
-        body: JSON.stringify(payload),
-      });
-      setMessage(qs("#bookMessage"), id ? "Book updated." : "Book added.");
-      resetBookForm();
-      await refreshAdmin();
-    } catch (error) {
-      setMessage(qs("#bookMessage"), error.message, true);
-    }
-  });
-
-  qs("#resetBookForm")?.addEventListener("click", resetBookForm);
-}
-
-function resetBookForm() {
-  qs("#bookForm")?.reset();
-  if (qs("#bookId")) qs("#bookId").value = "";
-  if (qs("#bookFormTitle")) qs("#bookFormTitle").textContent = "Add Book";
-}
-
-function initIssueForm() {
-  const form = qs("#issueForm");
-  if (!form) return;
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    try {
-      const data = await api("/get", {
-        method: "POST",
-        body: JSON.stringify({
-          user_id: Number(qs("#issueStudent").value),
-          book_id: Number(qs("#issueBook").value),
-        }),
-      });
-      setMessage(qs("#issueMessage"), `${data.message} Due date: ${data.due_date}`);
-      await refreshAdmin();
-    } catch (error) {
-      setMessage(qs("#issueMessage"), error.message, true);
-    }
-  });
-}
-
-function initStudentForm() {
-  const form = qs("#studentForm");
-  if (!form) return;
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const payload = {
-      name: qs("#studentName").value,
-      username: qs("#studentUsername").value,
-      email: qs("#studentEmail").value,
-      password: qs("#studentPassword").value,
-    };
-
-    try {
-      const data = await api("/students", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      setMessage(qs("#studentMessage"), "Student added successfully.");
-      form.reset();
-      await loadStudents();
-    } catch (error) {
-      setMessage(qs("#studentMessage"), error.message, true);
-    }
-  });
-}
-
-async function refreshAdmin() {
-  await loadBooks("admin");
-  await loadStudents();
-  await loadTransactions("admin");
-  await loadRequests();
-  await loadReports();
 }
 
 async function loadStudentStats() {
-  try {
-    console.log("Fetching student stats...");
-    const data = await api("/api/student/stats");
-    const stats = data.stats;
-    console.log("Stats received:", stats);
+    const statsContainer = qs("#studentIssued");
+    if (!statsContainer) return;
 
-    if (qs("#studentIssued")) {
-      animateCounter(qs("#studentIssued"), stats.issued_books_count);
-    }
-    if (qs("#studentAvailable")) {
-      animateCounter(qs("#studentAvailable"), stats.available_books);
-    }
-    if (qs("#studentSubjects")) {
-      animateCounter(qs("#studentSubjects"), stats.total_subjects);
-    }
-    if (qs("#studentTotalBooks")) {
-      animateCounter(qs("#studentTotalBooks"), stats.total_books);
-    }
-    if (qs("#studentFine")) {
-      qs("#studentFine").textContent = `₹${stats.total_fine}`;
-    }
-    return true;
-  } catch (err) {
-    console.error("Failed to load student stats:", err);
-    return false;
-  }
+    const data = await api("/api/student/stats");
+    const s = data.stats;
+
+    const update = (id, val) => { if (qs(id)) qs(id).textContent = val; };
+    update("#studentIssued", s.issued_books_count);
+    update("#studentFine", `₹${s.total_fine}`);
+    update("#studentAvailable", s.available_books);
+    update("#studentSubjects", s.total_subjects);
+}
+
+// Action Handlers
+function wireBookActions(books, page) {
+    qsa("[data-edit-book]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const b = books.find(x => x.id == btn.dataset.editBook);
+            if (!b) return;
+            qs("#bookFormTitle").textContent = "Edit Book";
+            qs("#bookId").value = b.id;
+            qs("#bookTitle").value = b.title;
+            qs("#bookAuthor").value = b.author;
+            qs("#bookCategory").value = b.category;
+            qs("#bookQuantity").value = b.total_quantity;
+            qs("#bookShelf").value = b.shelf;
+            qs("#bookFormModal").classList.add("show");
+        });
+    });
+
+    qsa("[data-delete-book]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            if (!confirm("Permanently delete this book?")) return;
+            await api(`/books/${btn.dataset.deleteBook}`, { method: "DELETE" });
+            showToast("Book deleted successfully");
+            loadBooks(page);
+        });
+    });
+
+    qsa("[data-request-book]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            btn.disabled = true;
+            const res = await api("/request-book", {
+                method: "POST",
+                body: JSON.stringify({ book_id: Number(btn.dataset.requestBook) })
+            });
+            showToast(res.message);
+            await refreshStudent();
+        });
+    });
+    
+    qsa("[data-rejection-reason]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            alert(`Rejection Reason: ${btn.dataset.rejectionReason}`);
+        });
+    });
+}
+
+function wireTransactionActions(page) {
+    qsa("[data-return]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const res = await api("/return", {
+                method: "POST",
+                body: JSON.stringify({ transaction_id: Number(btn.dataset.return) })
+            });
+            showToast(`Returned! Fine calculated: ₹${res.fine}`);
+            page === "admin" ? refreshAdmin() : refreshStudent();
+        });
+    });
+}
+
+function wireRequestActions() {
+    qsa("[data-approve]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const res = await api("/approve-request", {
+                method: "POST",
+                body: JSON.stringify({ request_id: Number(btn.dataset.approve) })
+            });
+            showToast(res.message);
+            refreshAdmin();
+        });
+    });
+
+    qsa("[data-reject]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const reason = prompt("Enter rejection reason:", "Out of stock");
+            if (reason === null) return;
+            const res = await api("/reject-request", {
+                method: "POST",
+                body: JSON.stringify({ request_id: Number(btn.dataset.reject), reason })
+            });
+            showToast(res.message);
+            refreshAdmin();
+        });
+    });
+}
+
+// Global Refreshers
+async function refreshAdmin() {
+    await loadBooks("admin");
+    await loadStudents();
+    await loadTransactions("admin");
+    await loadReports();
+    await loadRequests();
 }
 
 async function refreshStudent() {
-  try {
-    console.log("1. Loading books...");
     await loadBooks("student");
-    
-    console.log("2. Loading transactions...");
     await loadTransactions("student");
-    
-    console.log("3. Loading stats...");
     await loadStudentStats();
-    
-    console.log("Dashboard refresh complete.");
-  } catch (err) {
-    console.error("Refresh failed:", err);
-    alert("Refresh error: " + err.message);
-  }
 }
 
-function initSearch(page) {
-  const search = qs("#adminBookSearch") || qs("#bookSearch");
-  if (!search) return;
-  search.addEventListener("input", debounce(() => loadBooks(page), 250));
-}
+// Initialization
+document.addEventListener("DOMContentLoaded", () => {
+    const page = document.body.dataset.page;
 
-document.addEventListener("DOMContentLoaded", async () => {
-  initRevealDelays();
-  initReveals();
-  initMenu();
-  initNavbarState();
-  initHomepageLoginReveal();
-  initForgotPassword();
-  initLogin();
-  initLandingStats();
-
-  const page = document.body.dataset.page;
-  if (page === "admin") {
-    initBookForm();
-    initStudentForm();
-    initIssueForm();
-    initSearch("admin");
-    qs("#refreshAdmin")?.addEventListener("click", refreshAdmin);
-    qs("#refreshStudents")?.addEventListener("click", loadStudents);
-    initAdminProfile();
-    initNotifications();
-    initPasswordToggles();
-    try {
-      await refreshAdmin();
-    } catch (error) {
-      alert(error.message);
-    }
-  }
-
-  if (page === "student") {
-    initSearch("student");
-    qs("#refreshStudent")?.addEventListener("click", refreshStudent);
-    
-    // Wire rejection reason alerts for the unified catalog
-    document.addEventListener("click", (e) => {
-      const rejectBtn = e.target.closest("[data-rejection-reason]");
-      if (rejectBtn) {
-        alert(`Rejection Reason: ${rejectBtn.dataset.rejectionReason}`);
-      }
+    // Sidebar & Navigation
+    qsa(".nav-item").forEach(item => {
+        item.addEventListener("click", (e) => {
+            const href = item.getAttribute("href");
+            if (href && href.startsWith("#")) {
+                updateSidebarActive(href.substring(1));
+            }
+        });
     });
 
-    try {
-      await refreshStudent();
-    } catch (error) {
-      alert(error.message);
+    // Forms
+    qs("#loginForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const res = await api("/login", {
+            method: "POST",
+            body: JSON.stringify({
+                role: qs("#role").value,
+                username: qs("#username").value,
+                password: qs("#password").value
+            })
+        });
+        showToast(res.message);
+        setTimeout(() => window.location.href = res.redirect, 500);
+    });
+
+    qs("#bookForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = qs("#bookId").value;
+        const payload = {
+            title: qs("#bookTitle").value,
+            author: qs("#bookAuthor").value,
+            category: qs("#bookCategory").value,
+            total_quantity: Number(qs("#bookQuantity").value),
+            shelf: qs("#bookShelf").value
+        };
+        await api(id ? `/books/${id}` : "/books", {
+            method: id ? "PUT" : "POST",
+            body: JSON.stringify(payload)
+        });
+        showToast(id ? "Book updated" : "Book added");
+        qs("#bookFormModal").classList.remove("show");
+        refreshAdmin();
+    });
+
+    qs("#issueForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const res = await api("/get", {
+            method: "POST",
+            body: JSON.stringify({
+                user_id: Number(qs("#issueStudent").value),
+                book_id: Number(qs("#issueBook").value)
+            })
+        });
+        showToast(res.message);
+        refreshAdmin();
+    });
+
+    // Profile & Settings
+    qs("#openSettings")?.addEventListener("click", () => qs("#settingsModal").classList.add("show"));
+    qs("#closeSettings")?.addEventListener("click", () => qs("#settingsModal").classList.remove("show"));
+    
+    qs("#profileForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        await api("/api/admin/update-profile", {
+            method: "POST",
+            body: JSON.stringify({
+                name: qs("#profileName").value,
+                username: qs("#profileUsername").value
+            })
+        });
+        showToast("Profile updated");
+        setTimeout(() => location.reload(), 1000);
+    });
+
+    // Search
+    const search = qs("#adminBookSearch") || qs("#bookSearch");
+    if (search) {
+        search.addEventListener("input", (e) => {
+            const debounce = (fn, ms) => {
+                let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+            };
+            const debouncedLoad = debounce(() => loadBooks(page), 300);
+            debouncedLoad();
+        });
     }
-  }
+
+    // Role Buttons
+    qsa("[data-login-role]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            qsa("[data-login-role]").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            qs("#role").value = btn.dataset.loginRole;
+        });
+    });
+
+    // Notifications
+    qs("#bellIcon")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const dropdown = qs("#notificationDropdown");
+        dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+    });
+
+    document.addEventListener("click", () => {
+        const dropdown = qs("#notificationDropdown");
+        if (dropdown) dropdown.style.display = "none";
+    });
+
+    // Forgot Password Flow
+    const forgotLink = qs("#forgotPasswordLink");
+    const backToLogin = qs("#backToLogin");
+    const loginForm = qs("#loginForm");
+    const forgotShell = qs("#forgotPasswordShell");
+    const roleToggle = qs("#roleToggle");
+
+    forgotLink?.addEventListener("click", () => {
+        loginForm.hidden = true;
+        if (roleToggle) roleToggle.style.display = "none";
+        forgotShell.hidden = false;
+        qs("#resetRole").value = qs("#role").value;
+        qs("#forgotPasswordForm").hidden = false;
+        qs("#verifyOtpForm").hidden = true;
+        qs("#resetPasswordForm").hidden = true;
+    });
+
+    backToLogin?.addEventListener("click", () => {
+        forgotShell.hidden = true;
+        loginForm.hidden = false;
+        if (roleToggle) roleToggle.style.display = "flex";
+    });
+
+    qs("#forgotPasswordForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const res = await api("/forgot-password", {
+            method: "POST",
+            body: JSON.stringify({
+                role: qs("#resetRole").value,
+                identifier: qs("#resetIdentifier").value
+            })
+        });
+        showToast(res.message);
+        qs("#forgotPasswordForm").hidden = true;
+        qs("#verifyOtpForm").hidden = false;
+    });
+
+    qs("#verifyOtpForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const code = qs("#verifyCode").value;
+        const res = await api("/verify-otp", {
+            method: "POST",
+            body: JSON.stringify({
+                role: qs("#resetRole").value,
+                identifier: qs("#resetIdentifier").value,
+                code: code
+            })
+        });
+        showToast(res.message);
+        window.currentResetCode = code; // temporary store for the next step
+        qs("#verifyOtpForm").hidden = true;
+        qs("#resetPasswordForm").hidden = false;
+    });
+
+    qs("#resetPasswordForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const pass = qs("#newPassword").value;
+        const confirm = qs("#confirmPassword").value;
+        if (pass !== confirm) return showToast("Passwords do not match", "error");
+
+        const res = await api("/reset-password", {
+            method: "POST",
+            body: JSON.stringify({
+                role: qs("#resetRole").value,
+                identifier: qs("#resetIdentifier").value,
+                code: window.currentResetCode,
+                new_password: pass,
+                confirm_password: confirm
+            })
+        });
+        showToast(res.message);
+        backToLogin.click();
+    });
+
+    // Password Toggles
+    const setupToggle = (btnId, inputId) => {
+        const btn = qs(btnId);
+        const input = qs(inputId);
+        if (!btn || !input) return;
+        btn.addEventListener("click", () => {
+            const isPass = input.type === "password";
+            input.type = isPass ? "text" : "password";
+            btn.textContent = isPass ? "Hide" : "Show";
+        });
+    };
+    setupToggle("#togglePassword", "#password");
+
+    // Initial Load
+    if (page === "admin") refreshAdmin();
+    if (page === "student") refreshStudent();
 });
 
-function initAdminProfile() {
-  const form = qs("#profileForm");
-  const modal = qs("#settingsModal");
-  const openBtn = qs("#openSettings");
-  const closeBtn = qs("#closeSettings");
-
-  if (!form || !modal) return;
-
-  openBtn?.addEventListener("click", () => {
-    modal.classList.add("show");
-  });
-
-  const closeModal = () => {
-    modal.classList.remove("show");
-    setMessage(qs("#profileMessage"), "");
-  };
-
-  closeBtn?.addEventListener("click", closeModal);
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) closeModal();
-  });
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const message = qs("#profileMessage");
-    setMessage(message, "Updating...");
-
-    try {
-      await api("/api/admin/update-profile", {
+// Expose returnBook for inline onclicks if needed (though we use data attributes now)
+window.returnBook = async (id) => {
+    const res = await api("/return", {
         method: "POST",
-        body: JSON.stringify({
-          name: qs("#profileName").value,
-          username: qs("#profileUsername").value,
-        }),
-      });
-      setMessage(message, "Profile updated successfully!");
-      setTimeout(closeModal, 1500);
-    } catch (error) {
-      setMessage(message, error.message, true);
-    }
-  });
-}
-
-function initPasswordToggles() {
-  document.addEventListener("click", async (e) => {
-    const toggleBtn = e.target.closest("[data-toggle]");
-    if (toggleBtn) {
-      const input = qs(toggleBtn.dataset.toggle);
-      if (input) {
-        const isPass = input.type === "password";
-        input.type = isPass ? "text" : "password";
-        toggleBtn.textContent = isPass ? "🙈" : "👁️";
-      }
-      return;
-    }
-
-    const resetBtn = e.target.closest("[data-reset-password]");
-    if (resetBtn) {
-      const studentId = resetBtn.dataset.resetPassword;
-      const newPass = prompt("Enter new password for this student:");
-      if (!newPass) return;
-      if (newPass.length < 6) return alert("Password must be at least 6 characters.");
-
-      try {
-        await api("/api/admin/reset-student-password", {
-          method: "POST",
-          body: JSON.stringify({ user_id: Number(studentId), password: newPass })
-        });
-        alert("Password updated successfully.");
-        await loadStudents(); // Refresh to get new raw_password
-      } catch (err) {
-        alert(err.message);
-      }
-      return;
-    }
-
-    const viewBtn = e.target.closest("[data-view-password]");
-    if (viewBtn) {
-      const studentId = viewBtn.dataset.viewPassword;
-      const rawPass = viewBtn.dataset.raw;
-      const span = qs(`#pass-${studentId}`);
-      if (span) {
-        const isHidden = span.dataset.hidden === "true";
-        if (isHidden) {
-          span.textContent = rawPass || "Not Set";
-          span.dataset.hidden = "false";
-          viewBtn.textContent = "🙈";
-        } else {
-          span.textContent = rawPass ? "••••••••" : "—";
-          span.dataset.hidden = "true";
-          viewBtn.textContent = "👁️";
-        }
-      }
-    }
-
-    const deleteBtn = e.target.closest("[data-delete-student]");
-    if (deleteBtn) {
-      const studentId = deleteBtn.dataset.deleteStudent;
-      if (!confirm("Are you sure you want to delete this student permanently? All their transaction history will also be removed.")) return;
-
-      try {
-        await api(`/students/${studentId}`, { method: "DELETE" });
-        alert("Student deleted successfully.");
-        await loadStudents();
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-  });
-}
-
-function initNotifications() {
-  const bellBtn = qs("#bellIcon");
-  const dropdown = qs("#notificationDropdown");
-  if (!bellBtn || !dropdown) return;
-
-  bellBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!dropdown.contains(e.target) && e.target !== bellBtn) {
-      dropdown.style.display = "none";
-    }
-  });
-}
+        body: JSON.stringify({ transaction_id: id })
+    });
+    showToast(`Returned! Fine: ₹${res.fine}`);
+    refreshAdmin();
+};

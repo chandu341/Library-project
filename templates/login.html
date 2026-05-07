@@ -1,308 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Library Management System</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | Library SaaS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=9.0">
 </head>
-<body class="auth-page">
-  <div class="bg-blobs" aria-hidden="true">
-    <div class="blob"></div>
-    <div class="blob"></div>
-    <div class="blob"></div>
-  </div>
-  <nav class="navbar glass-nav app-navbar">
-    <a class="brand" href="#home" aria-label="Library Management System">
-      <span class="logo-mark" aria-hidden="true"><span></span></span>
-      <span>Library Management System</span>
-    </a>
-    <button class="menu-toggle" data-menu-toggle aria-label="Toggle menu">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-    <div class="nav-links" data-nav-links>
-      <a href="#home">Home</a>
-      <a href="#features">Features</a>
-      <a href="#spaces">Spaces</a>
-      <a href="#dashboard">Dashboard</a>
-      <a href="#contact">Contact</a>
+<body>
+    <div class="noise"></div>
+
+    <div class="auth-split">
+        <!-- Brand Side -->
+        <div class="auth-panel">
+            <div class="fade-up">
+                <div class="flex align-center gap-2 mb-12">
+                    <div class="brand-logo" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); box-shadow: none;">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <span class="brand-name" style="color: white; font-size: 1.25rem;">LibraryPro</span>
+                </div>
+                
+                <h1 style="font-size: 3rem; font-weight: 900; line-height: 1.1; margin-bottom: 24px; letter-spacing: -0.04em;">Manage your library <br> <span style="color: rgba(255,255,255,0.6);">like a modern SaaS.</span></h1>
+                <p style="font-size: 1.125rem; opacity: 0.8; max-width: 440px; line-height: 1.6;">A production-grade platform designed for high-efficiency book management and reader engagement.</p>
+                
+                <div class="flex gap-4 mt-12">
+                    <div style="background: rgba(255,255,255,0.05); padding: 24px; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.1); width: 140px; text-align: center;">
+                        <i class="fas fa-microchip fa-xl mb-4" style="color: var(--brand-100);"></i>
+                        <div style="font-size: 0.65rem; font-weight: 800; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.1em;">AUTOMATED</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 24px; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.1); width: 140px; text-align: center;">
+                        <i class="fas fa-shield-halved fa-xl mb-4" style="color: var(--brand-100);"></i>
+                        <div style="font-size: 0.65rem; font-weight: 800; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.1em;">SECURE</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Side -->
+        <div class="auth-form-side">
+            <!-- Background blobs just for this side -->
+            <div class="blob blob-1" style="width: 400px; height: 400px; opacity: 0.05;"></div>
+
+            <div class="glass-card fade-up">
+                <div class="mb-12">
+                    <h2 style="font-size: 2rem; font-weight: 900; margin-bottom: 8px;">Welcome back 👋</h2>
+                    <p style="color: var(--slate-500); font-weight: 500;">Enter your credentials to access the platform.</p>
+                </div>
+
+                <!-- Role Toggle -->
+                <div class="flex mb-8" style="background: var(--slate-100); padding: 6px; border-radius: var(--radius-md);" id="roleToggle">
+                    <button class="btn btn-white active" data-login-role="admin" style="flex: 1; border: none; box-shadow: none;">Administrator</button>
+                    <button class="btn" data-login-role="student" style="flex: 1;">Student Reader</button>
+                </div>
+
+                <form id="loginForm">
+                    <input id="role" name="role" type="hidden" value="admin">
+                    
+                    <div class="input-group">
+                        <i class="fas fa-user-shield input-icon"></i>
+                        <input id="username" name="username" class="input-field" placeholder="Username or Email" required>
+                    </div>
+
+                    <div class="input-group">
+                        <i class="fas fa-key input-icon"></i>
+                        <input id="password" name="password" type="password" class="input-field" placeholder="Password" required>
+                        <button type="button" id="togglePassword" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; font-weight: 900; color: var(--brand-600);">SHOW</button>
+                    </div>
+
+                    <div class="flex justify-between align-center mb-8">
+                        <label class="flex align-center gap-2" style="font-size: 0.875rem; cursor: pointer; color: var(--slate-500);">
+                            <input type="checkbox" style="width: 18px; height: 18px; border-radius: 4px;"> Remember me
+                        </label>
+                        <button type="button" id="forgotPasswordLink" style="font-size: 0.875rem; font-weight: 700; color: var(--brand-600);">Forgot Password?</button>
+                    </div>
+
+                    <button type="submit" id="submitLogin" class="btn btn-brand w-full" style="height: 56px; font-size: 1.1rem;">Sign in to Dashboard</button>
+                    
+                    <p id="loginMessage" class="form-message mt-4 text-center" style="font-size: 0.875rem; font-weight: 600;"></p>
+                </form>
+
+                <!-- Password Reset -->
+                <div id="forgotPasswordShell" hidden>
+                    <button id="backToLogin" class="btn btn-white btn-sm mb-8"><i class="fas fa-chevron-left"></i> Back to login</button>
+                    
+                    <form id="forgotPasswordForm">
+                        <h2 class="mb-4" style="font-size: 1.5rem;">Reset Access</h2>
+                        <p style="color: var(--slate-500); font-size: 0.875rem; margin-bottom: 24px;">Enter your linked identifier to receive a 6-digit code.</p>
+                        <input id="resetRole" type="hidden" value="admin">
+                        <div class="input-group">
+                            <i class="fas fa-id-badge input-icon"></i>
+                            <input id="resetIdentifier" class="input-field" placeholder="Email / Username" required>
+                        </div>
+                        <button type="submit" class="btn btn-brand w-full" style="height: 52px;">Send Code</button>
+                        <p id="forgotMessage" class="form-message mt-4 text-center"></p>
+                    </form>
+
+                    <form id="verifyOtpForm" hidden>
+                        <h2 class="mb-4" style="font-size: 1.5rem;">Check Email</h2>
+                        <div class="form-group mb-8">
+                            <input id="verifyCode" class="input-field" maxlength="6" style="text-align: center; letter-spacing: 0.5em; font-size: 2.5rem; font-weight: 900; height: 80px; padding-left: 16px;" placeholder="000000" required>
+                        </div>
+                        <button type="submit" class="btn btn-brand w-full" style="height: 52px;">Verify Identity</button>
+                        <p id="verifyMessage" class="form-message mt-4 text-center"></p>
+                    </form>
+
+                    <form id="resetPasswordForm" hidden>
+                        <h2 class="mb-4" style="font-size: 1.5rem;">New Password</h2>
+                        <div class="input-group">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input id="newPassword" type="password" class="input-field" placeholder="New Password" required minlength="6">
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-check-circle input-icon"></i>
+                            <input id="confirmPassword" type="password" class="input-field" placeholder="Confirm Password" required minlength="6">
+                        </div>
+                        <button type="submit" class="btn btn-brand w-full" style="height: 52px;">Update Password</button>
+                        <p id="resetMessage" class="form-message mt-4 text-center"></p>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-  </nav>
 
-  <main id="home" class="auth-shell system-home fade-in">
-    <section class="hero auth-hero system-hero reveal">
-      <div class="hero-backdrop" aria-hidden="true"></div>
-      <div class="hero-content">
-        <p class="eyebrow">Modern library operations</p>
-        <h1>Smarter Library Management, Simplified</h1>
-        <p class="hero-copy">Manage books, track students, and handle issue and return operations efficiently in one place.</p>
-        <div class="hero-actions">
-          <button class="btn primary" type="button" data-login-role="admin">Login as Admin</button>
-          <button class="btn secondary" type="button" data-login-role="student">Login as Student</button>
-        </div>
-        <div class="hero-highlights">
-          <div class="hero-highlight">
-            <strong>Live circulation</strong>
-            <span>Issue, return, and overdue tracking in one flow.</span>
-          </div>
-          <div class="hero-highlight">
-            <strong>Reader friendly</strong>
-            <span>Dedicated admin and student access with clear actions.</span>
-          </div>
-          <div class="hero-highlight">
-            <strong>Always searchable</strong>
-            <span>Find books, categories, and shelf positions in seconds.</span>
-          </div>
-        </div>
-      </div>
-
-      <aside id="dashboard" class="preview-panel" aria-label="Dashboard preview">
-        <div class="preview-header">
-          <div>
-            <span class="preview-dot"></span>
-            <strong>Today Overview</strong>
-          </div>
-          <span class="status-badge good">Live</span>
-        </div>
-
-        <div class="preview-visual">
-          <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80" alt="Library interior shelves">
-          <div class="preview-note">
-            <strong>Reading Hall</strong>
-            <span>Quiet zones, shelf visibility, and active desk monitoring.</span>
-          </div>
-        </div>
-
-        <div class="mini-chart" aria-label="Issued and returned books chart">
-          <div class="chart-row">
-            <span>Issued</span>
-            {% set issued_percent = (stats.today_issued / stats.total_books * 100) | round if stats.total_books > 0 else 0 %}
-            <div class="chart-track"><span style="width: 0" data-percent="{{ issued_percent }}"></span></div>
-            <strong>{{ stats.today_issued }}</strong>
-          </div>
-          <div class="chart-row">
-            <span>Returned</span>
-            {% set returned_percent = (stats.today_returned / stats.total_books * 100) | round if stats.total_books > 0 else 0 %}
-            <div class="chart-track returned"><span style="width: 0" data-percent="{{ returned_percent }}"></span></div>
-            <strong>{{ stats.today_returned }}</strong>
-          </div>
-        </div>
-
-        <div class="activity-list">
-          {% for activity in stats.activities %}
-          <div class="activity-item">
-            <span class="activity-icon {{ activity.type }}"></span>
-            <div>
-              <strong>{{ activity.title }}</strong>
-              <small>{{ activity.description }}</small>
-            </div>
-            <em>{{ activity.status }}</em>
-          </div>
-          {% else %}
-          <div class="activity-item">
-            <div>
-              <strong>No activity yet</strong>
-              <small>Ready for circulation</small>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </aside>
-    </section>
-
-    <section class="metrics-wrap" aria-label="Library metrics">
-      <div class="section-heading centered reveal">
-        <p class="eyebrow">Daily snapshot</p>
-        <h2>Designed for fast circulation and clear visibility</h2>
-      </div>
-      <div class="metrics-section">
-        <article class="metric-card reveal reveal-card">
-          <span class="metric-icon books-icon" aria-hidden="true"></span>
-          <strong data-landing-counter="{{ stats.total_books }}">0</strong>
-          <p>Total Books</p>
-        </article>
-        <article class="metric-card reveal reveal-card">
-          <span class="metric-icon students-icon" aria-hidden="true"></span>
-          <strong data-landing-counter="{{ stats.total_students }}">0</strong>
-          <p>Active Students</p>
-        </article>
-        <article class="metric-card reveal reveal-card">
-          <span class="metric-icon issued-icon" aria-hidden="true"></span>
-          <strong data-landing-counter="{{ stats.books_issued }}">0</strong>
-          <p>Books Issued</p>
-        </article>
-        <article class="metric-card reveal reveal-card">
-          <span class="metric-icon overdue-icon" aria-hidden="true"></span>
-          <strong data-landing-counter="{{ stats.overdue_books }}">0</strong>
-          <p>Overdue Books</p>
-        </article>
-      </div>
-    </section>
-
-    <section id="features" class="features-section">
-      <div class="section-heading reveal">
-        <p class="eyebrow">Structured workflows</p>
-        <h2>Tools for daily library operations</h2>
-      </div>
-      <div class="feature-grid">
-        <article class="feature-card reveal reveal-card">
-          <span class="feature-icon book-management"></span>
-          <h3>Book Management</h3>
-          <p>Add, update, search, and organize books with stock visibility.</p>
-        </article>
-        <article class="feature-card reveal reveal-card">
-          <span class="feature-icon student-records"></span>
-          <h3>Student Records</h3>
-          <p>Maintain student access and review active issue history.</p>
-        </article>
-        <article class="feature-card reveal reveal-card">
-          <span class="feature-icon tracking"></span>
-          <h3>Issue & Return Tracking</h3>
-          <p>Monitor due dates, returns, and active transactions clearly.</p>
-        </article>
-        <article class="feature-card reveal reveal-card">
-          <span class="feature-icon fine"></span>
-          <h3>Fine Management</h3>
-          <p>Calculate overdue fines and keep return records accurate.</p>
-        </article>
-        <article class="feature-card reveal reveal-card">
-          <span class="feature-icon access"></span>
-          <h3>Role-Based Access</h3>
-          <p>Separate Admin and Student workflows for cleaner control.</p>
-        </article>
-      </div>
-    </section>
-
-    <section id="spaces" class="library-gallery">
-      <article class="gallery-card reveal reveal-card">
-        <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1200&q=80" alt="Bookshelves inside a library">
-        <div class="gallery-copy">
-          <p class="eyebrow">Library spaces</p>
-          <h3>Shelf-ready catalog experience</h3>
-          <p>Give every title a visible place with category, quantity, and shelf mapping that stays easy to scan.</p>
-        </div>
-      </article>
-      <article class="gallery-card reveal reveal-card">
-        <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1200&q=80" alt="Reading room with natural light">
-        <div class="gallery-copy">
-          <p class="eyebrow">Reading environment</p>
-          <h3>Built for calm daily use</h3>
-          <p>Bring circulation, borrowing, and follow-up into a lighter interface that feels organized all day.</p>
-        </div>
-      </article>
-    </section>
-
-    <section class="portal-section">
-      <div class="portal-copy reveal">
-        <p class="eyebrow">Secure access</p>
-        <h2>Choose the right workspace and continue where the desk left off.</h2>
-        <p>Admins can manage stock, create student accounts, issue books, and watch reports. Students can browse the collection and stay ahead of due dates.</p>
-        <div class="portal-points">
-          <div><strong>Admin</strong><span>Catalog control, student accounts, issue desk, reports</span></div>
-          <div><strong>Student</strong><span>Search, self-issue, return tracking</span></div>
-        </div>
-      </div>
-
-      <div id="login-card" class="login-panel access-portal reveal">
-        <div class="panel-heading login-heading">
-          <p class="eyebrow">Secure access</p>
-          <h2>Access Portal</h2>
-          <p class="login-intro">Choose your role to continue</p>
-        </div>
-        <div class="role-buttons" id="roleButtons">
-          <button class="btn primary" type="button" data-login-role="admin">Admin Login</button>
-          <button class="btn secondary" type="button" data-login-role="student">Student Login</button>
-        </div>
-
-        <div id="loginFormShell" class="login-form-shell" hidden>
-          <div class="selected-role">
-            <span id="selectedRoleLabel">Admin Login</span>
-            <button type="button" class="link-button" id="changeRole">Change role</button>
-          </div>
-          <form id="loginForm" class="form-grid" autocomplete="off">
-            <input id="role" name="role" type="hidden" value="admin">
-            <label for="username">
-              Username / Email
-              <input id="username" name="username" type="text" autocomplete="off" required>
-            </label>
-            <label for="password">
-              Password
-              <span class="password-field">
-                <input id="password" name="password" type="password" autocomplete="off" required>
-                <button class="password-toggle" id="togglePassword" type="button">Show</button>
-              </span>
-            </label>
-            <div class="form-support" id="forgotLinks">
-              <button class="link-button" id="forgotPasswordLink" type="button">Forgot Password?</button>
-            </div>
-            <button class="btn primary full" id="submitLogin" type="submit">Login</button>
-            <p id="loginMessage" class="form-message"></p>
-          </form>
-        </div>
-
-        <div id="forgotPasswordShell" class="login-form-shell reset-shell" hidden>
-          <form id="forgotPasswordForm" class="form-grid" autocomplete="off" hidden>
-            <div class="selected-role">
-              <span id="resetRoleLabel">Admin Password Reset</span>
-              <button type="button" class="link-button" id="backToLogin">Back to login</button>
-            </div>
-            <input id="resetRole" name="resetRole" type="hidden" value="admin">
-            <label for="resetIdentifier">
-              Username / Email
-              <input id="resetIdentifier" name="resetIdentifier" type="text" autocomplete="off" required>
-            </label>
-            <button class="btn primary full" type="submit">Send Email Code</button>
-            <p id="forgotMessage" class="form-message"></p>
-          </form>
-
-
-
-          <form id="verifyOtpForm" class="form-grid" autocomplete="off" hidden>
-            <label for="verifyCode">
-              Email OTP Code
-              <input id="verifyCode" name="verifyCode" type="text" inputmode="numeric" maxlength="6" autocomplete="off" required>
-            </label>
-            <button class="btn primary full" type="submit">Verify Code</button>
-            <p id="verifyMessage" class="form-message"></p>
-          </form>
-
-          <form id="resetPasswordForm" class="form-grid reset-password-form" autocomplete="off" hidden>
-            <label for="newPassword">
-              New Password
-              <span class="password-field">
-                <input id="newPassword" name="newPassword" type="password" autocomplete="off" required minlength="6">
-                <button class="password-toggle" id="toggleNewPassword" type="button">Show</button>
-              </span>
-            </label>
-            <label for="confirmPassword">
-              Confirm New Password
-              <span class="password-field">
-                <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="off" required minlength="6">
-                <button class="password-toggle" id="toggleConfirmPassword" type="button">Show</button>
-              </span>
-            </label>
-            <button class="btn primary full" type="submit">Update Password</button>
-            <p id="resetMessage" class="form-message"></p>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <section id="contact" class="contact-section reveal">
-      <div>
-        <p class="eyebrow">Contact</p>
-        <h2>Need access support?</h2>
-        <p>Reach out for account help, password reset support, or library system questions.</p>
-      </div>
-      <div class="contact-card">
-        <a href="tel:+919666032664">Phone: +91 9666032664</a>
-        <a href="mailto:chanduv4321@gmail.com">Email: chanduv4321@gmail.com</a>
-      </div>
-    </section>
-  </main>
-
-  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <div id="toast-container"></div>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=9.0"></script>
+    <script>
+        document.querySelectorAll('[data-login-role]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-login-role]').forEach(b => {
+                    b.classList.remove('active', 'btn-white');
+                    b.style.boxShadow = 'none';
+                });
+                btn.classList.add('active', 'btn-white');
+                btn.style.boxShadow = 'var(--shadow-sm)';
+                document.getElementById('role').value = btn.dataset.loginRole;
+            });
+        });
+    </script>
 </body>
 </html>
